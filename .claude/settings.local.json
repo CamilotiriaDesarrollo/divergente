@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"/c/Users/ZenBook/Documents/divergente/.handoff\")",
+      "Bash(unzip -o \"/c/Users/ZenBook/Desktop/PAgina Web Divergente 2026/Nueva Pagina Divergente-handoff.zip\")",
+      "Read(//tmp/**)",
+      "Bash(curl -s -o /tmp/divergente-page.html -w \"HTTP %{http_code}\\\\n\" http://localhost:3001/)",
+      "Bash(curl -s -o /dev/null -w \"Eastman: %{http_code}\\\\n\" \"http://localhost:3001/_next/static/media/EastmanAlternateTrial_Regular-s.p.0rddk_0x4ie~t.otf\")",
+      "Bash(curl -s -o /dev/null -w \"Montserrat: %{http_code}\\\\n\" \"http://localhost:3001/_next/static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2\")",
+      "Bash(curl -s -o /dev/null -w \"CSS: %{http_code}\\\\n\" \"http://localhost:3001/_next/static/chunks/%5Broot-of-the-server%5D__0u.8pkx._.css\")",
+      "Bash(npx tsc *)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:3002/)"
+    ]
+  }
+}

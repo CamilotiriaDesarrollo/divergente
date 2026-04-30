@@ -1,0 +1,342 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-bg: #1a1b2e;
+  --color-fg: #f5f5f0;
+  --color-mint: #91fee6;
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-eastman), var(--font-montserrat), sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--bg, #1a1b2e);
+  color: var(--fg, #f5f5f0);
+  font-family: var(--font-montserrat), sans-serif;
+  overflow: hidden;
+}
+
+body {
+  --bg: #1a1b2e;
+  --fg: #f5f5f0;
+  --mint: #91fee6;
+  --nav-hover: #91fee6;
+  --copy: #9ca3af;
+}
+
+.bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--bg);
+  overflow: hidden;
+  transition: background 0.35s ease;
+}
+
+.bg-layer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  background-color: var(--mint);
+  opacity: 0.3;
+  -webkit-mask-image: url("/bg.png");
+  mask-image: url("/bg.png");
+  -webkit-mask-repeat: repeat-y;
+  mask-repeat: repeat-y;
+  -webkit-mask-size: 100% auto;
+  mask-size: 100% auto;
+  -webkit-mask-position: 0 var(--bg-offset, 0);
+  mask-position: 0 var(--bg-offset, 0);
+  -webkit-mask-mode: alpha;
+  mask-mode: alpha;
+  will-change: mask-position;
+  transition: background-color 0.35s ease;
+}
+
+@media (max-width: 700px), (orientation: landscape) and (max-height: 500px) {
+  .bg-layer::after {
+    width: 100%;
+  }
+}
+
+.wordmark {
+  font-family: var(--font-eastman), sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--mint);
+  display: block;
+  white-space: nowrap;
+  line-height: 0.88;
+  user-select: none;
+  font-size: 14.5vw;
+  letter-spacing: 0.015em;
+  text-align: center;
+  width: 100%;
+  transition: color 0.35s ease;
+}
+
+.wordmark-vertical {
+  display: none;
+  font-family: var(--font-eastman), sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--mint);
+  user-select: none;
+  line-height: 1;
+  transition: color 0.35s ease;
+}
+
+.nav-link {
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: clamp(1rem, 2.2vw, 56px);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--fg);
+  position: relative;
+  padding: 0.2rem 0;
+  transition: color 0.2s ease;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  background: var(--nav-hover);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-link.is-active {
+  color: var(--nav-hover);
+}
+
+.nav-link.is-active::after {
+  width: 100%;
+}
+
+@media (hover: hover) {
+  .nav-link:hover {
+    color: var(--nav-hover);
+  }
+  .nav-link:hover::after {
+    width: 100%;
+  }
+}
+
+.hero-copy {
+  max-width: 52ch;
+  font-size: clamp(14px, 1vw, 32px);
+  line-height: 1.7;
+  font-weight: 400;
+  color: var(--copy);
+  opacity: 0.92;
+  text-align: justify;
+  transition: color 0.35s ease;
+}
+
+.social-circles {
+  position: fixed;
+  right: 2rem;
+  top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(22px, 1.4vw, 40px);
+  z-index: 100;
+}
+
+.circle-link {
+  position: relative;
+  width: clamp(24px, 1.5vw, 48px);
+  height: clamp(24px, 1.5vw, 48px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mint);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), color 0.35s ease;
+}
+
+.circle-link svg {
+  width: clamp(20px, 1.25vw, 40px);
+  height: clamp(20px, 1.25vw, 40px);
+  transition: width 0.3s, height 0.3s, opacity 0.3s ease;
+}
+
+/* Hover swap to official brand logo — only renders/animates on devices that hover */
+.circle-link .icon-hover {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .circle-link:hover {
+    transform: translateX(-8px) scale(1.2);
+  }
+
+  .circle-link:hover svg {
+    width: clamp(28px, 1.75vw, 56px);
+    height: clamp(28px, 1.75vw, 56px);
+  }
+
+  .circle-link:has(.icon-hover):hover {
+    transform: translateX(-10px) scale(2);
+  }
+
+  .circle-link:has(.icon-hover):hover .icon-default {
+    opacity: 0;
+  }
+
+  .circle-link:has(.icon-hover):hover .icon-hover {
+    opacity: 1;
+  }
+
+  .circle-link:has(.icon-hover):hover svg {
+    width: clamp(20px, 1.25vw, 40px);
+    height: clamp(20px, 1.25vw, 40px);
+  }
+}
+
+/* Touch devices: don't render the brand-color SVG at all (no tap will ever show it) */
+@media (hover: none) {
+  .circle-link .icon-hover {
+    display: none;
+  }
+}
+
+/* Hover color schemes — driven by body class */
+body.hover-analitica {
+  --bg: #f6f3ff;
+  --fg: #a99bcf;
+  --mint: #e6a7ff;
+  --nav-hover: #e6a7ff;
+  --copy: #a99bcf;
+}
+body.hover-analitica .nav-link { color: #a99bcf; }
+body.hover-analitica .circle-link { color: #e6a7ff; }
+
+body.hover-metodologias {
+  --bg: #fff1b8;
+  --fg: #7cc9a7;
+  --mint: #005f46;
+  --nav-hover: #005f46;
+  --copy: #7cc9a7;
+}
+body.hover-metodologias .nav-link { color: #7cc9a7; }
+body.hover-metodologias .circle-link { color: #005f46; }
+
+body.hover-creatividad {
+  --bg: #1e2030;
+  --fg: #ffb26b;
+  --mint: #ff6a00;
+  --nav-hover: #ff6a00;
+  --copy: #ffb26b;
+}
+body.hover-creatividad .nav-link { color: #ffb26b; }
+body.hover-creatividad .circle-link { color: #ff6a00; }
+
+body.hover-portafolio {
+  --bg: #f2f4f8;
+  --fg: #6c7cff;
+  --mint: #1f3bff;
+  --nav-hover: #1f3bff;
+  --copy: #6c7cff;
+}
+body.hover-portafolio .nav-link { color: #6c7cff; }
+body.hover-portafolio .circle-link { color: #1f3bff; }
+
+body.hover-blog {
+  --bg: #f2f4f8;
+  --fg: #e63946;
+  --mint: #b91d2c;
+  --nav-hover: #b91d2c;
+  --copy: #e63946;
+}
+body.hover-blog .nav-link { color: #e63946; }
+body.hover-blog .circle-link { color: #b91d2c; }
+
+@media (max-width: 700px), (orientation: landscape) and (max-height: 500px) {
+  .social-circles {
+    flex-direction: column;
+    top: 1rem;
+    right: 1rem;
+    gap: 18px;
+  }
+
+  .circle-link {
+    width: 32px;
+    height: 32px;
+  }
+
+  .circle-link svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .wordmark {
+    display: none;
+  }
+
+  .wordmark-vertical {
+    display: block;
+    position: fixed;
+    top: 13rem;
+    bottom: 1rem;
+    right: 0;
+    z-index: 5;
+    font-size: clamp(2rem, min(18vw, 11vh), 6.5rem);
+    letter-spacing: 0.02em;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    padding: 0;
+    margin: 0;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .hero-copy {
+    font-size: 0.78rem;
+    line-height: 1.6;
+    max-width: 30ch;
+  }
+
+  .nav-link {
+    font-size: 1.2rem;
+    letter-spacing: 0.04em;
+    padding: 0.45rem 0;
+    width: 100%;
+  }
+
+  .nav-link::after {
+    display: none !important;
+  }
+}
+
+/* Phone landscape — extra tweaks for short viewport height */
+@media (orientation: landscape) and (max-height: 500px) {
+  .wordmark-vertical {
+    top: 0.5rem;
+    bottom: 0.5rem;
+  }
+
+  .nav-link {
+    font-size: 0.95rem;
+    padding: 0.25rem 0;
+  }
+}
