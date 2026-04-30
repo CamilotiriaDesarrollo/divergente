@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { eastman, montserrat } from "./fonts";
+import SiteShell from "./components/SiteShell";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,7 +17,9 @@ export default function RootLayout({
       lang="es"
       className={`${eastman.variable} ${montserrat.variable} h-full antialiased`}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        <SiteShell>{children}</SiteShell>
+      </body>
     </html>
   );
 }
