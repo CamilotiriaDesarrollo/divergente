@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "created": "2026-04-28T21:52:00.298Z",
+  "modified": "2026-04-28T23:21:42.712Z",
+  "objects": [
+    {
+      "id": "f7nzgplnh",
+      "type": "text",
+      "x": -658,
+      "y": 1622,
+      "data": {
+        "content": "DIVERGENTE",
+        "fontSize": 16,
+        "color": "#2D7DD2",
+        "bold": false
+      },
+      "width": 1041,
+      "height": 21
+    }
+  ]
+}

@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Divergente</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@300;400;500&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    @font-face {
+      font-family: 'EastmanAlternate';
+      src: url('fonts/EastmanAlternateTrial-Thin.otf') format('opentype');
+      font-weight: 100;
+    }
+    @font-face {
+      font-family: 'EastmanAlternate';
+      src: url('fonts/EastmanAlternateTrial-Extralight.otf') format('opentype');
+      font-weight: 200;
+    }
+    @font-face {
+      font-family: 'EastmanAlternate';
+      src: url('fonts/EastmanAlternateTrial-Light.otf') format('opentype');
+      font-weight: 300;
+    }
+    @font-face {
+      font-family: 'EastmanAlternate';
+      src: url('fonts/EastmanAlternateTrial-Regular.otf') format('opentype');
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: 'EastmanAlternate';
+      src: url('fonts/EastmanAlternateTrial-Bold.otf') format('opentype');
+      font-weight: 700;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #252734;
+      --fg: #f5f5f0;
+      --mint: #91fee6;
+      --nav-hover: #91fee6;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Montserrat', sans-serif;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* ── SCROLL CONTAINER ── */
+    .page {
+      position: relative;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── BACKGROUND LAYER ── */
+    .bg-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 200vh;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+      background: var(--bg);
+      will-change: transform;
+    }
+
+    /* Dot grid para visualizar el movimiento */
+    .bg-layer::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(145,254,230,0.18) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    /* ── CONTENT ── */
+    .content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* ── TOP SECTION ── */
+    .top {
+      flex: 1;
+      display: flex;
+      justify-content: flex-end;
+      padding: 2rem 2.5rem 1rem;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .img-zone { display: none; }
+
+    .text-zone {
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .img-zone { display: flex; align-items: flex-start; }
+
+    /* Text zone */
+    .text-zone {
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .hero-copy {
+      max-width: 52ch;
+      font-size: 16px;
+      line-height: 1.7;
+      font-weight: 400;
+      color: var(--fg);
+      opacity: 0.92;
+    }
+
+    /* Social tabs — solo iconos, sin marcos */
+    .social-circles {
+      position: fixed;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      z-index: 100;
+    }
+
+    .circle-link {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .circle-link:hover {
+      transform: translateX(-8px) scale(1.2);
+    }
+
+    .circle-link .icon-wrap {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: width 0.3s, height 0.3s, filter 0.3s;
+    }
+
+    .circle-link:hover .icon-wrap {
+      width: 36px;
+      height: 36px;
+    }
+
+    .circle-link .icon-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      /* PNG ya es mint con transparencia, filtros cambian el tinte */
+      filter: none;
+      transition: filter 0.3s;
+    }
+
+    .circle-link .icon-wrap svg {
+      width: 100%;
+      height: 100%;
+      color: #91fee6;
+      transition: color 0.3s;
+    }
+
+    /* Analítica — purple */
+    body.hover-analitica .circle-link .icon-wrap img { filter: hue-rotate(220deg) saturate(1.5); }
+    body.hover-analitica .circle-link .icon-wrap svg { color: #E6A7FF; }
+    /* Metodologías — green */
+    body.hover-metodologias .circle-link .icon-wrap img { filter: hue-rotate(100deg) saturate(2) brightness(0.6); }
+    body.hover-metodologias .circle-link .icon-wrap svg { color: #005F46; }
+    /* Creatividad — orange */
+    body.hover-creatividad .circle-link .icon-wrap img { filter: hue-rotate(270deg) saturate(3) brightness(1); }
+    body.hover-creatividad .circle-link .icon-wrap svg { color: #FF6A00; }
+    /* Portafolio — blue */
+    body.hover-portafolio .circle-link .icon-wrap img { filter: hue-rotate(190deg) saturate(3) brightness(0.9); }
+    body.hover-portafolio .circle-link .icon-wrap svg { color: #1F3BFF; }
+    /* Blog — red */
+    body.hover-blog .circle-link .icon-wrap img { filter: hue-rotate(320deg) saturate(3) brightness(0.85); }
+    body.hover-blog .circle-link .icon-wrap svg { color: #B91D2C; }
+
+    .circle-link .label { display: none; }
+    .circle-link .tooltip { display: none; }
+
+    /* ── WORDMARK ── */
+    .wordmark-section {
+    }
+
+    .wordmark {
+      font-family: 'EastmanAlternate', sans-serif;
+      font-weight: 400;
+      text-transform: uppercase;
+      color: var(--mint);
+      display: block;
+      white-space: nowrap;
+      padding: 0;
+      line-height: 0.88;
+      user-select: none;
+      font-size: 14.5vw;
+      letter-spacing: 0.015em;
+      text-align: center;
+      width: 100%;
+    }
+
+    /* ── NAV ── */
+    .main-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0 1.8rem;
+      margin: 0;
+    }
+
+    .nav-link {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 32px;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--fg);
+      position: relative;
+      transition: color 0.2s;
+      padding: 0.2rem 0;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 1.5px;
+      background: var(--nav-hover);
+      transition: width 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .nav-link:hover {
+      color: var(--nav-hover);
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+
+    /* hide vertical wordmark on desktop */
+    .wordmark-vertical { display: none; }
+
+    /* ────────────────────────────
+       MOBILE
+    ──────────────────────────── */
+    @media (max-width: 700px) {
+
+      .social-circles { display: none !important; }
+      .img-zone { display: none; }
+
+      .top {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 1.4rem 1rem 1rem 1.4rem;
+        overflow: hidden;
+      }
+
+      .text-zone { flex-direction: column; gap: 0; }
+
+      .hero-copy { font-size: 0.78rem; line-height: 1.6; }
+
+      .wordmark { display: none; }
+
+      .wordmark-section {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+      }
+
+      .wordmark-vertical {
+        display: block;
+        font-family: 'EastmanAlternate', sans-serif;
+        font-weight: 400;
+        font-size: clamp(2.8rem, 11vw, 5rem);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        transform: rotate(180deg);
+        color: var(--mint);
+        padding: 1rem 0 1rem 1rem;
+        line-height: 1;
+        user-select: none;
+        margin-left: auto;
+      }
+
+      .main-nav {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+        padding: 0 1rem 1.5rem 1.4rem;
+        border-top: none;
+      }
+
+      .nav-link {
+        font-size: 1.2rem;
+        letter-spacing: 0.04em;
+        padding: 0.45rem 0;
+        width: 100%;
+        display: block;
+      }
+
+      .nav-link::after { display: none !important; }
+    }
+
+    /* ── HOVER STATE por item ── */
+    body.nav-hover {
+      --bg: #d8d5c6;
+      --fg: #9c1f39;
+      --nav-hover: #9c1f39;
+    }
+    body.nav-hover .bg-layer { background: #d8d5c6; }
+    body.nav-hover .wordmark { color: #fb7286; }
+    body.nav-hover .nav-link { color: #9c1f39; }
+    body.nav-hover .nav-link::after { background: #9c1f39; }
+    body.nav-hover .hero-copy { color: #9c1f39; }
+    body.nav-hover .circle-link { border-color: rgba(156,31,57,0.4); color: #9c1f39; }
+
+    /* Blog */
+    body.hover-blog .bg-layer { background: #F2F4F8; }
+    body.hover-blog .wordmark { color: #B91D2C; }
+    body.hover-blog .nav-link { color: #E63946; }
+    body.hover-blog .nav-link::after { background: #B91D2C; }
+    body.hover-blog .hero-copy { color: #E63946; }
+    body.hover-blog .circle-link { border-color: rgba(230,57,70,0.4); color: #E63946; }
+
+    /* Portafolio */
+    body.hover-portafolio .bg-layer { background: #F2F4F8; }
+    body.hover-portafolio .wordmark { color: #1F3BFF; }
+    body.hover-portafolio .nav-link { color: #6C7CFF; }
+    body.hover-portafolio .nav-link::after { background: #1F3BFF; }
+    body.hover-portafolio .hero-copy { color: #6C7CFF; }
+    body.hover-portafolio .circle-link { border-color: rgba(108,124,255,0.4); color: #6C7CFF; }
+
+    /* Creatividad */
+    body.hover-creatividad .bg-layer { background: #1E2030; }
+    body.hover-creatividad .wordmark { color: #FF6A00; }
+    body.hover-creatividad .nav-link { color: #FFB26B; }
+    body.hover-creatividad .nav-link::after { background: #FF6A00; }
+    body.hover-creatividad .hero-copy { color: #FFB26B; }
+    body.hover-creatividad .circle-link { border-color: rgba(255,178,107,0.4); color: #FFB26B; }
+
+    /* Metodologías */
+    body.hover-metodologias .bg-layer { background: #FFF1B8; }
+    body.hover-metodologias .wordmark { color: #005F46; }
+    body.hover-metodologias .nav-link { color: #7CC9A7; }
+    body.hover-metodologias .nav-link::after { background: #005F46; }
+    body.hover-metodologias .hero-copy { color: #7CC9A7; }
+    body.hover-metodologias .circle-link { border-color: rgba(124,201,167,0.4); color: #7CC9A7; }
+    body.hover-analitica .bg-layer { background: #F6F3FF; }
+    body.hover-analitica .wordmark { color: #E6A7FF; }
+    body.hover-analitica .nav-link { color: #A99BCF; }
+    body.hover-analitica .nav-link::after { background: #E6A7FF; }
+    body.hover-analitica .hero-copy { color: #A99BCF; }
+    body.hover-analitica .circle-link { border-color: rgba(169,155,207,0.4); color: #A99BCF; }
+
+    /* Transitions */
+    .bg-layer,
+    .wordmark,
+    .nav-link,
+    .hero-copy,
+    .circle-link {
+      transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="bg-layer" id="bgLayer"></div>
+
+<div class="content">
+
+  <!-- TOP ZONE -->
+  <div class="top">
+
+    <div class="img-zone"></div>
+
+    <!-- Copy only — social circles moved to wordmark -->
+    <div class="text-zone">
+      <p class="hero-copy">
+        Los datos miden — La IA procesa — Los sistemas organizan.<br>
+        Pero ninguno es innovador, ninguno lidera, ninguno crea.<br>
+        <br>
+        En DIVERGENTE trabajamos para personas, líderes y organizaciones<br>
+        que entienden que las mejores decisiones vienen de quienes<br>
+        aprenden a observar, sentir y crear con propósito.
+      </p>
+    </div>
+
+  </div>
+
+  <!-- WORDMARK + NAV wrapper -->
+  <div style="position:relative; padding: 0 0 0.5rem;">
+    <div class="wordmark-section">
+      <div class="wordmark" id="wordmark">DIVERGENTE</div>
+      <span class="wordmark-vertical">DIVERGENTE</span>
+    </div>
+    <!-- MAIN NAV — aligned to wordmark edges -->
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a class="nav-link" href="#" style="padding-left:0;">Analítica</a>
+      <a class="nav-link" href="#">Metodologías</a>
+      <a class="nav-link" href="#">Creatividad</a>
+      <a class="nav-link" href="#">Portafolio</a>
+      <a class="nav-link" href="#" style="padding-right:0;">Blog</a>
+    </nav>
+  </div>
+
+</div>
+
+<script>
+  // Nav hover — per-item color schemes
+  const navSchemes = {
+    'Analítica':     'hover-analitica',
+    'Metodologías':  'hover-metodologias',
+    'Creatividad':   'hover-creatividad',
+    'Portafolio':    'hover-portafolio',
+    'Blog':          'hover-blog',
+  };
+
+  document.querySelectorAll('.nav-link').forEach(link => {
+    const cls = navSchemes[link.textContent.trim()] || 'nav-hover';
+    link.addEventListener('mouseenter', () => {
+      document.body.classList.remove('nav-hover', ...Object.values(navSchemes));
+      document.body.classList.add(cls);
+    });
+    link.addEventListener('mouseleave', () => {
+      document.body.classList.remove('nav-hover', ...Object.values(navSchemes));
+    });
+  });
+
+  // Parallax background scroll
+  let bgOffset = 0;
+  const bgLayer = document.getElementById('bgLayer');
+
+  window.addEventListener('wheel', (e) => {
+    bgOffset += e.deltaY * 0.4;
+    bgOffset = Math.max(0, bgOffset);
+    bgLayer.style.transform = `translateY(-${bgOffset}px)`;
+  }, { passive: true });
+
+  // Touch support
+  let touchStartY = 0;
+  window.addEventListener('touchstart', (e) => {
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  window.addEventListener('touchmove', (e) => {
+    const dy = touchStartY - e.touches[0].clientY;
+    touchStartY = e.touches[0].clientY;
+    bgOffset += dy * 0.4;
+    bgOffset = Math.max(0, bgOffset);
+    bgLayer.style.transform = `translateY(-${bgOffset}px)`;
+  }, { passive: true });
+
+  function alignNav() {
+    const wm = document.getElementById('wordmark');
+    const nav = document.querySelector('.main-nav');
+    const textZone = document.querySelector('.text-zone');
+    if (!wm || !nav) return;
+
+    // Measure the actual rendered text bounds using a Range
+    const range = document.createRange();
+    range.selectNodeContents(wm);
+    const textRect = range.getBoundingClientRect();
+    const containerRect = wm.parentElement.getBoundingClientRect();
+
+    const leftPad = textRect.left - containerRect.left;
+    const rightPad = containerRect.right - textRect.right;
+
+    nav.style.paddingLeft = Math.max(0, leftPad + 12) + 'px';
+    nav.style.paddingRight = Math.max(0, rightPad) + 'px';
+
+    // Align text-zone right edge with last E of DIVERGENTE
+    if (textZone) {
+      textZone.style.marginRight = Math.max(0, rightPad) + 'px';
+    }
+  }
+  document.fonts.ready.then(() => {
+    alignNav();
+    window.addEventListener('resize', alignNav);
+  });
+</script>
+<!-- Social tabs fijos borde derecho -->
+<div class="social-circles">
+  <a class="circle-link" href="#" aria-label="YouTube" data-brand="youtube">
+    <div class="icon-wrap"><img src="icons/youtube.png" alt="YouTube"></div>
+    <span class="label">YouTube</span>
+  </a>
+  <a class="circle-link" href="#" aria-label="Instagram" data-brand="instagram">
+    <div class="icon-wrap">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 3.3.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 3.2-1.7 4.8-4.9 4.9-1.3.1-1.6.1-4.9.1s-3.6 0-4.8-.1c-3.3-.1-4.8-1.7-4.9-4.9C2.2 15.6 2.2 15.3 2.2 12s0-3.6.1-4.8C2.4 3.9 4 2.3 7.2 2.3c1.2-.1 1.6-.1 4.8-.1zm0-2.2C8.7 0 8.3 0 7.1.1 2.7.3.3 2.7.1 7.1.1 8.3 0 8.7 0 12c0 3.3 0 3.7.1 4.9.2 4.4 2.6 6.8 7 7C8.3 24 8.7 24 12 24s3.7 0 4.9-.1c4.4-.2 6.8-2.6 7-7 .1-1.2.1-1.6.1-4.9s0-3.7-.1-4.9C23.7 2.7 21.3.3 16.9.1 15.7 0 15.3 0 12 0zm0 5.8a6.2 6.2 0 1 0 0 12.4A6.2 6.2 0 0 0 12 5.8zm0 10.2a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-11.8a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8z"/></svg>
+    </div>
+    <span class="label">Instagram</span>
+  </a>
+  <a class="circle-link" href="#" aria-label="LinkedIn" data-brand="linkedin">
+    <div class="icon-wrap">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.4 20.4h-3.4v-5.3c0-1.3 0-2.9-1.8-2.9s-2 1.4-2 2.8v5.4H9.8V9h3.3v1.6h.1c.5-.9 1.6-1.8 3.3-1.8 3.5 0 4.1 2.3 4.1 5.3v6.3zM5.3 7.4a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm1.7 13H3.6V9h3.4v11.4zM22.2 0H1.8C.8 0 0 .8 0 1.7v20.6C0 23.2.8 24 1.8 24h20.4c1 0 1.8-.8 1.8-1.7V1.7C24 .8 23.2 0 22.2 0z"/></svg>
+    </div>
+    <span class="label">LinkedIn</span>
+  </a>
+  <a class="circle-link" href="#" aria-label="WhatsApp" data-brand="whatsapp">
+    <div class="icon-wrap">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-1 1.1-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.6-2.1-.2-.3 0-.5.1-.6l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4C7.5 9 6.8 9.7 6.8 11.1s1 2.7 1.1 2.9c.1.2 1.9 2.9 4.6 4.1.6.3 1.1.5 1.5.6.6.2 1.2.2 1.7.1.5-.1 1.7-.7 1.9-1.3.2-.6.2-1.2.2-1.3 0-.1-.2-.2-.4-.3zM12 21.7A9.7 9.7 0 0 1 2.3 12 9.7 9.7 0 1 1 12 21.7zm0-21.4A11.7 11.7 0 0 0 .9 17.6L0 24l6.6-.9A11.7 11.7 0 1 0 12 .3z"/></svg>
+    </div>
+    <span class="label">WhatsApp</span>
+  </a>
+</div>
+
+</body>
+</html>
