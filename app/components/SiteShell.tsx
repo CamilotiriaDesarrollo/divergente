@@ -23,6 +23,22 @@ const ROUTE_TO_INDEX: Record<string, number> = {
   "/blog": 4,
 };
 
+const LOGO_SRCS = [
+  "/logo-analitica.png",
+  "/logo-metodologias.png",
+  "/logo-creatividad.png",
+  "/logo-portafolio.png",
+  "/logo-blog.png",
+] as const;
+
+const ROUTE_LABELS = [
+  "Analítica",
+  "Metodologías",
+  "Creatividad",
+  "Portafolio",
+  "Blog",
+] as const;
+
 export default function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const lockedIndex = ROUTE_TO_INDEX[pathname] ?? null;
@@ -30,6 +46,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
   const bgRef = useRef<HTMLDivElement | null>(null);
   const wordmarkRef = useRef<HTMLDivElement | null>(null);
   const navRef = useRef<HTMLElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const navAutoRef = useRef<{
     hover: (i: number) => void;
     leave: () => void;
@@ -170,6 +187,46 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
     };
   }, [lockedIndex]);
 
+  // Label scroll-fade animation
+  useEffect(() => {
+    if (lockedIndex === null) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.scrollTop = 0;
+
+    const getLetters = () =>
+      Array.from(container.querySelectorAll<HTMLSpanElement>(".label-letter"));
+
+    const reset = () =>
+      getLetters().forEach((el) => {
+        el.style.opacity = "1";
+        el.style.transform = "";
+      });
+
+    reset();
+
+    const STAGGER_PX = 14;
+    const FADE_DURATION = 38;
+
+    const onScroll = () => {
+      const y = container.scrollTop;
+      getLetters().forEach((el, i) => {
+        const start = i * STAGGER_PX;
+        const raw = 1 - (y - start) / FADE_DURATION;
+        const opacity = Math.max(0, Math.min(1, raw));
+        el.style.opacity = String(opacity);
+        el.style.transform = `translateY(${(1 - opacity) * -5}px)`;
+      });
+    };
+
+    container.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      container.removeEventListener("scroll", onScroll);
+      reset();
+    };
+  }, [lockedIndex]);
+
   const isSubpage = lockedIndex !== null;
 
   const navLinks = NAV_ITEMS.map((item, i) => (
@@ -195,18 +252,19 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
       )}
 
       {isSubpage ? (
-        <div className="flex min-h-screen flex-col">
+        <div ref={containerRef} data-scroll-container className="h-screen overflow-y-auto">
           <header className="site-header">
             <Link href="/" className="logo-link" aria-label="Inicio Divergente">
               <Image
-                src="/logo.png"
+                data-header-logo
+                src={LOGO_SRCS[lockedIndex!]}
                 alt=""
-                width={64}
-                height={64}
+                width={96}
+                height={96}
                 className="logo-icon"
                 priority
               />
-              <span className="logo-text">DIVERGENTE</span>
+              <span data-header-text className="logo-text">DIVERGENTE</span>
             </Link>
             <nav
               ref={navRef}

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { eastman, montserrat } from "./fonts";
+import { eastman, montserrat, playfair } from "./fonts";
 import SiteShell from "./components/SiteShell";
 import "./globals.css";
 
@@ -15,7 +15,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${eastman.variable} ${montserrat.variable} h-full antialiased`}
+      className={`${eastman.variable} ${montserrat.variable} ${playfair.variable} h-full antialiased`}
     >
       <body className="min-h-full">
         <SiteShell>{children}</SiteShell>
