@@ -15,6 +15,29 @@ export default function Analitica() {
   const [openCard, setOpenCard] = useState<number | null>(null);
   const [openService, setOpenService] = useState<number | null>(null);
   const [openItem, setOpenItem] = useState<[number, number] | null>(null);
+  const [peekCard, setPeekCard] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 768 : false
+  );
+  const isMobileRef = useRef(typeof window !== "undefined" ? window.innerWidth <= 768 : false);
+
+  useEffect(() => {
+    const check = () => {
+      const m = window.innerWidth <= 768;
+      isMobileRef.current = m;
+      setIsMobile(m);
+    };
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  useEffect(() => {
+    const timers = [0, 1, 2].map((i) => setTimeout(() => {
+      setPeekCard(i);
+    }, 900 + i * 350));
+    return () => timers.forEach(clearTimeout);
+  }, []);
 
   const CARD_IMAGES = ["/plataformas.gif"];
   const [cardImg, setCardImg] = useState(CARD_IMAGES[0]);
@@ -107,9 +130,16 @@ export default function Analitica() {
     const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
     const sectionPadTop = rootFontSize * 7;
     if (heroRef.current) {
-      heroRef.current.style.minHeight = `${window.innerHeight - headerHeight + 1300}px`;
+      // Mobile: needs enough scroll space for the line1→line2 crossfade + line2 fade-out
+      // to complete BEFORE the accordion enters the viewport.
+      // accordion_enters_at = header + heroHeight - viewport > 480 (our fade-out end)
+      // → heroHeight > 480 + viewport - header ≈ viewport + 400
+      // Using viewport + 500 gives a ~95px safety buffer on all mobile sizes.
+      heroRef.current.style.minHeight = isMobileRef.current
+        ? `${window.innerHeight + 500}px`
+        : `${window.innerHeight - headerHeight + 1300}px`;
     }
-    if (accordionInnerRef.current) {
+    if (accordionInnerRef.current && !isMobileRef.current) {
       accordionInnerRef.current.style.top = `${headerHeight}px`;
     }
     const accordionOffset = (window.innerHeight - headerHeight + 1300) - 450 - headerHeight;
@@ -150,9 +180,15 @@ export default function Analitica() {
     // ── Fijar línea 2 en viewport para que no se corte al scrollear ──
     const line2El = line2Ref.current;
     const h1InitialTop = headerHeight + 20;
+    // On mobile, h1 is pushed down by section paddingTop (14vh), so measure it directly
+    // so that line2's fixed position matches line1's visual position.
+    const titleRect = titleRef.current?.getBoundingClientRect();
+    const line2FixedTop = isMobileRef.current && titleRect
+      ? Math.round(titleRect.top)
+      : h1InitialTop;
     if (line2El) {
       line2El.style.position     = "fixed";
-      line2El.style.top          = `${h1InitialTop}px`;
+      line2El.style.top          = `${line2FixedTop}px`;
       line2El.style.left         = "0";
       line2El.style.width        = "100%";
       line2El.style.zIndex       = "9";
@@ -238,7 +274,24 @@ export default function Analitica() {
         el.style.transform = `translateY(${p * 28}px)`;
       });
 
-      if (y < SLIDE_START) {
+      if (isMobileRef.current) {
+        // ── MOBILE: Line 2 aparece rápido solapando con Line 1, luego desvanece en su lugar ──
+        line2Letters.forEach((el, i) => {
+          // 4× faster delays + shorter IN_END so both lines overlap during line1's fade-out
+          const d = Math.round(line2Delays[i] * 0.25);
+          const p = clamp((y - d) / 120);
+          el.style.opacity   = String(p);
+          el.style.filter    = `blur(${(1 - p) * 14}px)`;
+          el.style.transform = `translateY(${(1 - p) * 18}px)`;
+          el.style.color     = "";
+        });
+        if (line2El) {
+          line2El.style.transform = ""; // sin slide en mobile
+          // Fade out in-place: starts at y=280, fully gone at y=480
+          const mobFadeP = clamp((y - 280) / 200);
+          line2El.style.opacity = String(1 - mobFadeP);
+        }
+      } else if (y < SLIDE_START) {
         // ── DISSOLVE IN: Line 2 emerge letra a letra ──
         line2Letters.forEach((el, i) => {
           const d = line2Delays[i];
@@ -329,15 +382,17 @@ export default function Analitica() {
         ? lerp(0.25, 0.75, logoP / 0.82)
         : lerp(0.75, 0, arrivalP));
 
-      // ── Accordion: scroll-driven card opening ──
-      const rel = y - accordionOffset;
-      let nextCard: number | null = null;
-      if (rel >= 0 && rel < NUM_CARDS * PER_CARD) {
-        nextCard = Math.min(NUM_CARDS - 1, Math.floor(rel / PER_CARD));
-      }
-      if (nextCard !== lastCardIdx) {
-        lastCardIdx = nextCard;
-        setOpenCard(nextCard);
+      // ── Accordion: scroll-driven card opening (desktop only) ──
+      if (!isMobileRef.current) {
+        const rel = y - accordionOffset;
+        let nextCard: number | null = null;
+        if (rel >= 0 && rel < NUM_CARDS * PER_CARD) {
+          nextCard = Math.min(NUM_CARDS - 1, Math.floor(rel / PER_CARD));
+        }
+        if (nextCard !== lastCardIdx) {
+          lastCardIdx = nextCard;
+          setOpenCard(nextCard);
+        }
       }
 
     };
@@ -392,7 +447,7 @@ export default function Analitica() {
       {/* ── Hero ── */}
       <section
         ref={heroRef}
-        className="section-wrap"
+        className="section-wrap hero-section"
         style={{ display: "flex", alignItems: "flex-start", paddingTop: "18vh" }}
       >
         <h1
@@ -401,9 +456,9 @@ export default function Analitica() {
           style={{ margin: 0, textTransform: "uppercase", textAlign: "center", width: "100%", fontFamily: "var(--font-montserrat), sans-serif", fontWeight: 400, letterSpacing: "0.04em", position: "relative" }}
         >
           {/* Línea 1 — en flujo, define la altura del h1 */}
-          <span style={{ display: "block", fontSize: "clamp(5rem, 10vw, 15rem)", lineHeight: 1.05, color: "#9488b8" }}>
+          <span className="hero-line hero-line-g1" style={{ display: "block", fontSize: "clamp(2.2rem, 10vw, 15rem)", lineHeight: 1.05, color: "#9488b8" }}>
             {["Los", "datos", "no", "deciden"].map((word, wi, arr) => (
-              <span key={wi} style={{ whiteSpace: "nowrap", display: "inline" }}>
+              <span key={wi} className="hero-word" style={{ whiteSpace: "nowrap", display: "inline" }}>
                 {wi === 2 ? (
                   <span style={{ display: "inline-block", position: "relative" }}>
                     {word.split("").map((char, ci) => (
@@ -425,11 +480,11 @@ export default function Analitica() {
             ))}
           </span>
           {/* Línea 2 — superpuesta. "Las PERSONAS" baja un enter, "sí" debajo */}
-          <span ref={line2Ref} style={{ position: "absolute", top: 0, left: 0, width: "100%", textAlign: "center", color: "#e6a7ff", paddingTop: "1.05em", fontSize: "clamp(5rem, 10vw, 15rem)" }}>
+          <span ref={line2Ref} className="hero-line" style={{ position: "absolute", top: 0, left: 0, width: "100%", textAlign: "center", color: "#e6a7ff", paddingTop: "1.05em", fontSize: "clamp(2.2rem, 10vw, 15rem)" }}>
             {/* "Las PERSONAS" — una línea abajo de Line 1 */}
-            <span style={{ display: "block", fontSize: "clamp(5rem, 10vw, 15rem)", lineHeight: 1.05 }}>
+            <span className="hero-line" style={{ display: "block", fontSize: "clamp(2.2rem, 10vw, 15rem)", lineHeight: 1.05 }}>
               {["Las", "PERSONAS"].map((word, wi, arr) => (
-                <span key={wi} style={{ whiteSpace: "nowrap", display: "inline" }}>
+                <span key={wi} className="hero-word" style={{ whiteSpace: "nowrap", display: "inline" }}>
                   {word.split("").map((char, ci) => (
                     <span key={ci} className="title-letter" style={{ display: "inline-block", willChange: "opacity, transform, filter" }}>{char}</span>
                   ))}
@@ -438,7 +493,7 @@ export default function Analitica() {
               ))}
             </span>
             {/* "sí" — en su propia línea debajo, negrita */}
-            <span style={{ display: "block", fontSize: "clamp(5rem, 10vw, 15rem)", lineHeight: 1.05, fontWeight: 700 }}>
+            <span className="hero-line hero-si" style={{ display: "block", fontSize: "clamp(2.2rem, 10vw, 15rem)", lineHeight: 1.05, fontWeight: 700 }}>
               <span style={{ display: "inline-block", position: "relative" }}>
                 {"sí".split("").map((char, ci) => (
                   <span key={ci} className="title-letter" style={{ display: "inline-block", willChange: "opacity, transform, filter" }}>{char}</span>
@@ -455,24 +510,24 @@ export default function Analitica() {
       </section>
 
 
-      {/* ── Una Mirada Divergente — wrapper crea el espacio de scroll; sección sticky adentro ── */}
-      <div ref={accordionSectionRef} style={{ marginTop: "-450px", height: "4300px" }}>
-      <section ref={accordionInnerRef} style={{ height: "520px", backgroundColor: "rgba(148, 136, 184, 0.04)", position: "sticky", top: "80px", overflow: "hidden" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", padding: "1.5rem 4vw", gap: "2rem", height: "100%" }}>
+      {/* ── Una Mirada Divergente — desktop: scroll-driven sticky; mobile: click-driven vertical ── */}
+      <div ref={accordionSectionRef} style={{ marginTop: isMobile ? 0 : "-450px", height: isMobile ? "auto" : "4300px", marginBottom: isMobile ? "3.5rem" : 0 }}>
+      <section ref={accordionInnerRef} style={{ height: isMobile ? "auto" : "520px", backgroundColor: "rgba(148, 136, 184, 0.04)", position: isMobile ? "relative" : "sticky", top: isMobile ? "auto" : "80px", overflow: isMobile ? "visible" : "hidden" }}>
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "flex-start", padding: isMobile ? "1.5rem 1.25rem" : "1.5rem 4vw", gap: isMobile ? "0.75rem" : "2rem", height: isMobile ? "auto" : "100%" }}>
 
-          {/* Sidebar vertical */}
-          <div style={{ display: "flex", flexDirection: "row", gap: "1.25rem", flexShrink: 0, alignSelf: "stretch", paddingTop: "0.25rem" }}>
-            <span className="section-label" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", letterSpacing: "0.18em", alignSelf: "flex-end" }}>
+          {/* Sidebar — vertical on desktop, compact header on mobile */}
+          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? "0.1rem" : "1.25rem", flexShrink: 0, alignSelf: isMobile ? "auto" : "stretch", paddingTop: "0.25rem", paddingBottom: isMobile ? "0.5rem" : 0 }}>
+            <span className="section-label" style={{ writingMode: isMobile ? "horizontal-tb" : "vertical-rl", transform: isMobile ? "none" : "rotate(180deg)", letterSpacing: "0.18em", alignSelf: isMobile ? "auto" : "flex-end" }}>
               una mirada divergente
             </span>
-            <h2 className="section-heading" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", margin: 0, lineHeight: 1.05, alignSelf: "flex-end" }}>
+            <h2 className="section-heading" style={{ writingMode: isMobile ? "horizontal-tb" : "vertical-rl", transform: isMobile ? "none" : "rotate(180deg)", margin: 0, lineHeight: 1.05, alignSelf: isMobile ? "auto" : "flex-end" }}>
               Cómo lo hacemos.
             </h2>
           </div>
 
-          {/* Acordeón horizontal */}
-          <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", gap: "0", alignItems: "stretch", height: "488px", borderBottom: "1px solid rgba(148,136,184,0.22)" }}>
+          {/* Acordeón */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: "0", alignItems: "stretch", height: isMobile ? "auto" : "488px", borderBottom: "1px solid rgba(148,136,184,0.22)" }}>
             {([
               {
                 num: "001",
@@ -488,8 +543,8 @@ export default function Analitica() {
                 num: "002",
                 code: "deploy({ ai, platforms })",
                 content: (
-                  <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: "0.75rem" }}>
-                    <div style={{ flex: "0 0 38%", borderRadius: "6px", overflow: "hidden" }}>
+                  <div style={{ display: "flex", flexDirection: "column", height: isMobile ? "auto" : "100%", gap: "0.75rem" }}>
+                    <div style={{ flex: isMobile ? "none" : "0 0 38%", height: isMobile ? "180px" : undefined, borderRadius: "6px", overflow: "hidden" }}>
                       <img src={cardImg} alt="plataformas" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", opacity: 0.90, transition: "opacity 0.5s ease" }} />
                     </div>
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
@@ -503,7 +558,7 @@ export default function Analitica() {
                           <p style={{ margin: 0, fontFamily: "monospace", fontSize: "15px", color: "var(--copy)" }}><strong>Integramos IA</strong> en tu día a día</p>
                         </div>
                       </div>
-                      <p style={{ margin: "0 0 4.5rem", fontFamily: "monospace", fontSize: "18px", fontWeight: 700, color: "var(--mint)", lineHeight: 1.2, textAlign: "center" }}>
+                      <p style={{ margin: isMobile ? "1rem 0 0" : "0 0 4.5rem", fontFamily: "monospace", fontSize: "18px", fontWeight: 700, color: "var(--mint)", lineHeight: 1.2, textAlign: "center" }}>
                         Sabemos hacerlo y lo hacemos bien.
                       </p>
                     </div>
@@ -514,8 +569,8 @@ export default function Analitica() {
                 num: "003",
                 code: "// insight ≠ raw data",
                 content: (
-                  <div style={{ display: "flex", flexDirection: "column", height: "100%", alignItems: "center", justifyContent: "flex-end", paddingBottom: "calc(1.25rem + 50px)", gap: "0.5rem" }}>
-                    <div style={{ width: "85%", aspectRatio: "1 / 1", overflow: "hidden", flexShrink: 0 }}>
+                  <div style={{ display: "flex", flexDirection: "column", height: isMobile ? "auto" : "100%", alignItems: "center", justifyContent: isMobile ? "flex-start" : "flex-end", paddingBottom: isMobile ? 0 : "calc(1.25rem + 50px)", gap: "0.5rem" }}>
+                    <div style={{ width: isMobile ? "70%" : "85%", aspectRatio: "1 / 1", overflow: "hidden", flexShrink: 0 }}>
                       <img src="/insight.png" alt="insight" style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scale(1.2)", opacity: 0.65, filter: "invert(0.75) sepia(0.4) hue-rotate(210deg) saturate(0.7) brightness(1.1)" }} />
                     </div>
                     <p style={{ margin: 0, fontFamily: "monospace", fontSize: "20px", fontWeight: 700, color: "var(--copy)", lineHeight: 1.2, textAlign: "center" }}>
@@ -528,7 +583,7 @@ export default function Analitica() {
                 num: "004",
                 code: "humans.interpret(data, { empathy })",
                 content: (
-                  <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%", gap: "2rem" }}>
+                  <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: isMobile ? "auto" : "100%", gap: "2rem" }}>
                     <p style={{ margin: "20px 0 0", fontFamily: "monospace", fontSize: "18px", color: "#9333EA", lineHeight: 1.5, textAlign: "center" }}>
                       Las decisiones que de verdad mueven una organización no las reemplaza ningún sistema
                     </p>
@@ -542,7 +597,7 @@ export default function Analitica() {
                 num: "005",
                 code: "observe({ deep: true, present: true })",
                 content: (
-                  <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", padding: "0.5rem 0" }}>
+                  <div style={{ display: "flex", flexDirection: "column", justifyContent: isMobile ? "flex-start" : "space-between", height: isMobile ? "auto" : "100%", padding: "0.5rem 0", gap: isMobile ? "1rem" : 0 }}>
                     <p style={{ margin: 0, fontFamily: "monospace", fontSize: "18px", color: "var(--copy)", textAlign: "center", lineHeight: 1.5 }}>
                       Desde ahí trabajamos.
                     </p>
@@ -567,11 +622,15 @@ export default function Analitica() {
                   key={card.num}
                   onClick={() => setOpenCard(isOpen ? null : i)}
                   style={{
-                    flex: isOpen ? "0 0 400px" : "0 0 56px",
+                    flex: isMobile
+                      ? (isOpen ? "0 0 460px" : "0 0 52px")
+                      : (isOpen ? "0 0 400px" : "0 0 56px"),
+                    width: isMobile ? "100%" : undefined,
                     transition: "flex 0.45s cubic-bezier(0.4, 0, 0.2, 1)",
                     borderRadius: 0,
                     backgroundColor: isOpen ? "rgba(148,136,184,0.05)" : "transparent",
-                    borderRight: i < 4 ? "1px solid rgba(148,136,184,0.15)" : "none",
+                    borderRight: isMobile ? "none" : (i < 4 ? "1px solid rgba(148,136,184,0.15)" : "none"),
+                    borderBottom: isMobile && i < 4 ? "1px solid rgba(148,136,184,0.15)" : "none",
                     borderLeft: isOpen ? "2px solid rgba(230,167,255,0.35)" : "none",
                     overflow: "hidden",
                     cursor: "pointer",
@@ -598,48 +657,62 @@ export default function Analitica() {
                       pointerEvents: "none",
                     }} />
                   </>)}
-                  {/* Etiqueta colapsada: código rotado + número transparente abajo */}
+                  {/* Etiqueta colapsada */}
                   <div style={{
                     position: "absolute",
                     inset: 0,
                     display: "flex",
-                    flexDirection: "column",
+                    flexDirection: isMobile ? "row" : "column",
                     alignItems: "center",
-                    padding: "1.25rem 0",
+                    padding: isMobile ? "0 1rem" : "1.25rem 0",
                     gap: "0.75rem",
                     opacity: isOpen ? 0 : 1,
                     transition: "opacity 0.15s",
                     pointerEvents: isOpen ? "none" : "auto",
                     overflow: "hidden",
                   }}>
-                    <code style={{
-                      writingMode: "vertical-rl",
-                      transform: "rotate(180deg)",
-                      fontFamily: "monospace",
-                      fontSize: "0.65rem",
-                      color: "#9488b8",
-                      opacity: 0.65,
-                      flex: 1,
-                      overflow: "hidden",
-                      whiteSpace: "nowrap",
-                      display: "block",
-                    }}>
-                      {card.code}
-                    </code>
-                    <span style={{
-                      fontFamily: "var(--font-montserrat), sans-serif",
-                      fontSize: "26px",
-                      fontWeight: 700,
-                      color: "#9333EA",
-                      opacity: 0.30,
-                      marginBottom: "0.5rem",
-                      writingMode: "vertical-rl",
-                      transform: "rotate(180deg)",
-                      letterSpacing: "-0.02em",
-                      lineHeight: 1,
-                    }}>
-                      {card.num}
-                    </span>
+                    {isMobile ? (
+                      <>
+                        <span style={{ fontFamily: "var(--font-montserrat), sans-serif", fontSize: "13px", fontWeight: 700, color: "#9333EA", opacity: 0.55, flexShrink: 0 }}>
+                          {card.num}
+                        </span>
+                        <code style={{ fontFamily: "monospace", fontSize: "0.7rem", color: "#9488b8", opacity: 0.7, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", padding: "0 0.5rem" }}>
+                          {card.code}
+                        </code>
+                        <span style={{ color: "#9333EA", opacity: isOpen ? 0 : 0.72, fontSize: "22px", flexShrink: 0, lineHeight: 1, transition: "transform 0.3s, opacity 0.3s", transform: isOpen ? "rotate(90deg)" : "none", fontWeight: 300 }}>›</span>
+                      </>
+                    ) : (
+                      <>
+                        <code style={{
+                          writingMode: "vertical-rl",
+                          transform: "rotate(180deg)",
+                          fontFamily: "monospace",
+                          fontSize: "0.65rem",
+                          color: "#9488b8",
+                          opacity: 0.65,
+                          flex: 1,
+                          overflow: "hidden",
+                          whiteSpace: "nowrap",
+                          display: "block",
+                        }}>
+                          {card.code}
+                        </code>
+                        <span style={{
+                          fontFamily: "var(--font-montserrat), sans-serif",
+                          fontSize: "26px",
+                          fontWeight: 700,
+                          color: "#9333EA",
+                          opacity: 0.30,
+                          marginBottom: "0.5rem",
+                          writingMode: "vertical-rl",
+                          transform: "rotate(180deg)",
+                          letterSpacing: "-0.02em",
+                          lineHeight: 1,
+                        }}>
+                          {card.num}
+                        </span>
+                      </>
+                    )}
                   </div>
 
                   {/* Contenido expandido */}
@@ -647,7 +720,7 @@ export default function Analitica() {
                     position: "relative",
                     zIndex: 1,
                     padding: "1.4rem",
-                    height: "100%",
+                    height: isMobile ? "auto" : "100%",
                     display: "flex",
                     flexDirection: "column",
                     gap: "0.9rem",
@@ -699,7 +772,7 @@ export default function Analitica() {
                         ))}
                       </div>
                     ) : (
-                      <div style={{ margin: 0, fontFamily: "monospace", fontSize: "0.8rem", lineHeight: 1.7, color: "var(--copy)", flex: 1, minHeight: 0 }}>
+                      <div style={{ margin: 0, fontFamily: "monospace", fontSize: "0.8rem", lineHeight: 1.7, color: "var(--copy)", flex: isMobile ? "none" : 1, minHeight: 0 }}>
                         {card.content}
                       </div>
                     )}
@@ -707,7 +780,8 @@ export default function Analitica() {
                 </div>
               );
             })}
-            {/* Espacio derecho con imagen de fondo y línea de código centrada */}
+            {/* Espacio derecho con imagen de fondo — solo en desktop */}
+            {!isMobile && (
             <div style={{
               flex: 1,
               display: "flex",
@@ -718,13 +792,9 @@ export default function Analitica() {
               overflow: "hidden",
               paddingBottom: "30%",
             }}>
-              {/* Imagen con filtro de paleta */}
               <div style={{
                 position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: "-40%",
+                top: 0, left: 0, right: 0, bottom: "-40%",
                 backgroundImage: "url('/bg-analitica.png')",
                 backgroundSize: "auto 88%",
                 backgroundPosition: "50% 100%",
@@ -734,14 +804,7 @@ export default function Analitica() {
                 WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 25%)",
                 maskImage: "linear-gradient(to bottom, transparent 0%, black 25%)",
               }} />
-              {/* Bloque VS Code */}
-              <div style={{
-                position: "relative",
-                zIndex: 1,
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.6rem",
-              }}>
+              <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", gap: "0.6rem" }}>
                 <style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style>
                 {twLines.map((line, i) => {
                   const showCursor = i === twIdx && twPhase !== "waiting";
@@ -766,7 +829,60 @@ export default function Analitica() {
                 })}
               </div>
             </div>
+            )}
           </div>
+          {/* Bloque de código + imagen — mobile: debajo de los paneles */}
+          {isMobile && (
+            <div style={{
+              position: "relative",
+              minHeight: "280px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderTop: "1px solid rgba(148,136,184,0.12)",
+              marginTop: "0.25rem",
+              overflow: "hidden",
+            }}>
+              {/* Imagen yoga de fondo */}
+              <div style={{
+                position: "absolute",
+                inset: 0,
+                bottom: "-30%",
+                backgroundImage: "url('/bg-analitica.png')",
+                backgroundSize: "auto 90%",
+                backgroundPosition: "50% 100%",
+                backgroundRepeat: "no-repeat",
+                opacity: 0.50,
+                filter: "grayscale(0.2) hue-rotate(220deg) saturate(1.2) brightness(0.85)",
+                WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 30%)",
+                maskImage: "linear-gradient(to bottom, transparent 0%, black 30%)",
+              }} />
+              {/* Typewriter code */}
+              <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", gap: "0.55rem", padding: "2rem 1.25rem 1.5rem" }}>
+                {twLines.map((line, i) => {
+                  const showCursor = i === twIdx && twPhase !== "waiting";
+                  const lineActive = i === twIdx;
+                  return (
+                    <div key={i} style={{ display: "flex", alignItems: "baseline" }}>
+                      <span style={{
+                        fontFamily: "monospace",
+                        fontSize: "clamp(0.68rem, 3.2vw, 0.95rem)",
+                        color: lineActive ? "#9333EA" : "rgba(147,51,234,0.55)",
+                        letterSpacing: "0.02em",
+                        whiteSpace: "nowrap",
+                        transition: "color 0.2s",
+                      }}>
+                        {line}
+                        {showCursor && (
+                          <span style={{ borderRight: "2px solid #9333EA", marginLeft: "1px", animation: "blink 0.75s step-end infinite" }}>&nbsp;</span>
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           </div>
 
         </div>
@@ -814,12 +930,28 @@ export default function Analitica() {
           @media (hover: hover) {
             .svc-item-row:hover { background: rgba(120,80,200,0.1); padding-left: 1rem; }
           }
-          .svc-para { opacity: 0.07; filter: blur(2px); transition: opacity 0.7s ease, filter 0.7s ease; }
-          .svc-action { opacity: 0.3; transition: opacity 0.4s ease; }
+          .svc-para { opacity: 0.45; }
+          .svc-action { opacity: 0.5; transition: opacity 0.4s ease; }
           @media (hover: hover) {
-            .svc-card:hover .svc-para { opacity: 1; filter: blur(0); }
             .svc-card:hover .svc-card-front { border-color: rgba(147,51,234,0.3); }
-            .svc-card:hover .svc-action { opacity: 0.8; }
+            .svc-card:hover .svc-action { opacity: 1; }
+          }
+          @keyframes card-peek {
+            0%   { transform: rotateY(0deg); }
+            35%  { transform: rotateY(42deg); }
+            70%  { transform: rotateY(40deg); }
+            100% { transform: rotateY(0deg); }
+          }
+          .svc-card-inner.is-peeking {
+            animation: card-peek 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            transition: none !important;
+          }
+          .svc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+          @media (max-width: 1023px) {
+            .svc-grid { grid-template-columns: 1fr; gap: 1rem; }
+            .svc-card { height: 500px !important; }
+            .svc-card.is-flipped { height: 640px !important; }
+            .svc-card.is-flipped.has-item { height: 1100px !important; }
           }
         `}</style>
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(ellipse at 20% 50%, rgba(147,51,234,0.12) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(145,254,230,0.07) 0%, transparent 50%)", pointerEvents: "none" }} />
@@ -827,7 +959,7 @@ export default function Analitica() {
           <h2 style={{ fontFamily: "var(--font-eastman)", fontSize: "clamp(2rem, 3.5vw, 3.5rem)", fontWeight: 400, textTransform: "uppercase", color: "var(--mint)", textAlign: "center", letterSpacing: "0.03em", lineHeight: 1, marginBottom: "3rem" }}>
             Cómo nos gusta servir
           </h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.25rem" }}>
+          <div className="svc-grid">
             {([
               {
                 num: "01",
@@ -847,7 +979,7 @@ export default function Analitica() {
                 paragraph: "Desarrollamos tecnología pensando primero en las personas.\n\nAntes de escribir una línea de código, observamos. Conversamos con quienes van a usar la solución, mapeamos sus formas de trabajar, decidir y sentir frente a la tecnología.\n\nCombinamos prácticas de cocreación, dibujo y prototipado vivo con metodologías propias de diseño centrado en lo humano. Por eso lo que construimos no se siente como otra herramienta más: se siente como algo que pertenece a quien lo usa.",
                 items: [
                   { name: "Desarrollo de apps", image: "/svc/APP.png", paragraph: "Construimos aplicaciones móviles pensadas desde quien las va a usar.\n\nAntes de programar, prototipamos con dinámicas de cocreación y observación profunda para entender cómo viven, deciden y se mueven las personas.\n\nLa mejor app es la que se siente **natural**, la que desaparece y deja solo la **experiencia**." },
-                  { name: "Desarrollo de plataformas web", paragraph: "Diseñamos y desarrollamos plataformas web a la medida, desde sitios institucionales hasta sistemas complejos de gestión.\n\nCada proyecto parte de una **pregunta humana** antes que técnica: qué necesita resolver, sentir o lograr la persona que entra acá." },
+                  { name: "Desarrollo de plataformas web", image: "/svc/WEB.png", paragraph: "Diseñamos y desarrollamos plataformas web a la medida, desde sitios institucionales hasta sistemas complejos de gestión.\n\nCada proyecto parte de una **pregunta humana** antes que técnica: qué necesita resolver, sentir o lograr la persona que entra acá." },
                   { name: "Plataformas interactivas", paragraph: "Creamos experiencias digitales que cruzan formatos: web, audio, video, narrativa transmedia, interacción.\n\nIntegramos lenguajes del arte, el sonido y el diseño contemplativo para construir plataformas que no solo informan, sino que **emocionan, educan y transforman** a quien las habita." },
                   { name: "Soluciones digitales a la medida", paragraph: "Construimos software, sistemas de información y arquitecturas tecnológicas para necesidades específicas que ninguna herramienta del mercado resuelve.\n\nCada solución parte de una **observación cuidadosa** de cómo trabaja tu equipo y aplica metodologías propias de gestión del conocimiento.\n\nPara que la tecnología se adapte a las personas, **no al revés.**" },
                 ],
@@ -863,10 +995,12 @@ export default function Analitica() {
                 ],
               },
             ] as { num: string; label: string; bgImage?: string; paragraph?: string; items: { name: string; desc?: string; paragraph?: string; image?: string }[] }[]).map((card, i) => (
-              <div key={card.num} className={`svc-card${openService === i ? " is-flipped" : ""}`}
+              <div key={card.num} className={`svc-card${openService === i ? " is-flipped" : ""}${openItem?.[0] === i ? " has-item" : ""}`}
                 style={{ height: openService === i ? (openItem?.[0] === i ? "960px" : "560px") : "480px", transition: "height 0.45s cubic-bezier(0.4,0,0.2,1)" }}
-                onClick={() => { if (openService !== i) setOpenService(i); }}>
-                <div className="svc-card-inner">
+                onClick={() => { if (openService !== i) setOpenService(i); }}
+                onMouseEnter={() => { if (openService !== i && peekCard === null) { setPeekCard(i); } }}>
+                <div className={`svc-card-inner${peekCard === i && openService !== i ? " is-peeking" : ""}`}
+                  onAnimationEnd={() => setPeekCard(null)}>
                   {/* FRENTE */}
                   <div className="svc-card-front">
                     {card.bgImage && <div style={{ position: "absolute", inset: 0, backgroundImage: `url('${card.bgImage}')`, backgroundSize: "cover", backgroundPosition: "center", opacity: 0.28, filter: "grayscale(0.2) hue-rotate(220deg) saturate(1.1)" }} />}
@@ -875,12 +1009,12 @@ export default function Analitica() {
                       <div style={{ display: "flex", alignItems: "center" }}>
                         <h3 style={{ fontFamily: "var(--font-eastman)", fontSize: "clamp(1.4rem, 2vw, 2rem)", fontWeight: 400, textTransform: "uppercase", color: "var(--mint)", margin: 0, lineHeight: 1.05, letterSpacing: "0.03em", writingMode: "vertical-rl", transform: "rotate(180deg)" }}>{card.label}</h3>
                       </div>
-                      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                        <div style={{ display: "flex", justifyContent: "flex-end", paddingBottom: "0.6rem" }}>
+                          <span className="svc-action" style={{ fontFamily: "var(--font-montserrat)", letterSpacing: "0.04em", color: "var(--mint)", display: "flex", alignItems: "center", gap: "0.3rem" }}><span style={{ fontSize: "1.6rem" }}>↺</span><span style={{ fontSize: "0.82rem" }}>dale la vuelta</span></span>
+                        </div>
                         <div className="svc-para" style={{ flex: 1, display: "flex", alignItems: "center" }}>
                           {card.paragraph && <div style={{ fontFamily: "var(--font-montserrat)", fontSize: "0.85rem", color: "rgba(245,245,240,0.85)", lineHeight: 1.8, display: "flex", flexDirection: "column", gap: "0.75rem" }}>{card.paragraph.split("\n\n").map((p, k) => <p key={k} style={{ margin: 0 }}>{p.split("**").map((part, pi) => pi % 2 === 1 ? <strong key={pi}>{part}</strong> : part)}</p>)}</div>}
-                        </div>
-                        <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: "0.75rem" }}>
-                          <span className="svc-action" style={{ fontFamily: "var(--font-montserrat)", letterSpacing: "0.04em", color: "var(--mint)" }}><span style={{ fontSize: "1.4rem" }}>↺</span><span style={{ fontSize: "0.68rem", marginLeft: "0.35rem" }}>dale la vuelta</span></span>
                         </div>
                       </div>
                     </div>
@@ -940,7 +1074,7 @@ export default function Analitica() {
 
       {/* ── Por Qué Divergente ── */}
       <section className="py-28" style={{}}>
-        <div className="section-wrap flex gap-20 items-center">
+        <div className="section-wrap flex flex-col gap-8 lg:flex-row lg:gap-20 lg:items-center">
           <div className="flex-[3]">
             <span className="section-label">Por qué Divergente</span>
             <h2 className="section-heading">Tecnología con propósito humano.</h2>
@@ -949,7 +1083,7 @@ export default function Analitica() {
               <p className="italic">Para organizaciones y emprendedores que quieren entender su realidad — no solo medirla.</p>
             </div>
           </div>
-          <div className="flex-[2] placeholder-illo rounded-full" style={{ aspectRatio: "1" }} />
+          <div className="flex-[2] placeholder-illo rounded-full hidden lg:block" style={{ aspectRatio: "1" }} />
         </div>
       </section>
 

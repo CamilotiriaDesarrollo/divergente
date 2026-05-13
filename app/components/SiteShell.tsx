@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const NAV_ITEMS = [
   { label: "Analítica", scheme: "hover-analitica", href: "/analitica" },
@@ -228,6 +228,8 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
   }, [lockedIndex]);
 
   const isSubpage = lockedIndex !== null;
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
 
   const navLinks = NAV_ITEMS.map((item, i) => (
     <Link
@@ -253,7 +255,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
 
       {isSubpage ? (
         <div ref={containerRef} data-scroll-container className="h-screen overflow-y-auto">
-          <header className="site-header">
+          <header className={`site-header${menuOpen ? " menu-open" : ""}`}>
             <Link href="/" className="logo-link" aria-label="Inicio Divergente">
               <Image
                 data-header-logo
@@ -273,6 +275,20 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             >
               {navLinks}
             </nav>
+            <button
+              className="site-menu-btn"
+              onClick={() => setMenuOpen(o => !o)}
+              aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+              aria-expanded={menuOpen}
+            >
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                {menuOpen ? (
+                  <><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></>
+                ) : (
+                  <><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></>
+                )}
+              </svg>
+            </button>
           </header>
 
           <main className="site-main">{children}</main>
