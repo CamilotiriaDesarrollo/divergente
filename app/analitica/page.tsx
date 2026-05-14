@@ -1021,7 +1021,7 @@ export default function Analitica() {
         `}</style>
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(ellipse at 20% 50%, rgba(147,51,234,0.12) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(145,254,230,0.07) 0%, transparent 50%)", pointerEvents: "none" }} />
         <div className="section-wrap" style={{ position: "relative", zIndex: 1 }}>
-          <h2 style={{ fontFamily: "var(--font-eastman)", fontSize: "clamp(2rem, 3.5vw, 3.5rem)", fontWeight: 400, textTransform: "uppercase", color: "var(--mint)", textAlign: "center", letterSpacing: "0.03em", lineHeight: 1, marginBottom: "3rem" }}>
+          <h2 style={{ fontFamily: "var(--font-eastman)", fontSize: "clamp(2.5rem, 7vw, 3.5rem)", fontWeight: 400, textTransform: "uppercase", color: "var(--mint)", textAlign: "center", letterSpacing: "0.03em", lineHeight: 1, marginBottom: isMobile ? "1.5rem" : "3rem" }}>
             Cómo nos gusta servir
           </h2>
           <div className="svc-grid">
@@ -1080,7 +1080,7 @@ export default function Analitica() {
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(10,4,22,0.92) 0%, rgba(26,10,48,0.6) 100%)" }} />
                     <div style={{ position: "relative", zIndex: 1, display: "flex", gap: isMobile ? "0.6rem" : "1.5rem", height: "100%", padding: isMobile ? "1.1rem" : "2rem" }}>
                       <div style={{ display: "flex", alignItems: "center" }}>
-                        <h3 style={{ fontFamily: "var(--font-eastman)", fontSize: isMobile ? "1rem" : "clamp(1.4rem, 2vw, 2rem)", fontWeight: 400, textTransform: "uppercase", color: "var(--mint)", margin: 0, lineHeight: 1.05, letterSpacing: "0.03em", writingMode: "vertical-rl", transform: "rotate(180deg)" }}>{card.label}</h3>
+                        <h3 style={{ fontFamily: "var(--font-eastman)", fontSize: isMobile ? "1.2rem" : "clamp(1.4rem, 2vw, 2rem)", fontWeight: 400, textTransform: "uppercase", color: "var(--mint)", margin: 0, lineHeight: 1.05, letterSpacing: isMobile ? "0.1em" : "0.03em", writingMode: "vertical-rl", transform: "rotate(180deg)" }}>{card.label}</h3>
                       </div>
                       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                         <div style={{ display: "flex", justifyContent: "flex-end", paddingBottom: "0.6rem" }}>
@@ -1164,7 +1164,7 @@ export default function Analitica() {
       </section>
 
       {/* ── CTA / Footer ── */}
-      <section style={{ background: "#f0ecff", position: "relative", overflow: "hidden", minHeight: "62vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", paddingTop: "5rem", paddingBottom: "2em" }}>
+      <section style={{ background: "#f0ecff", position: "relative", overflow: "hidden", minHeight: isMobile ? "auto" : "62vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", paddingTop: isMobile ? "2.5rem" : "5rem", paddingBottom: isMobile ? "1rem" : "2em" }}>
 
         {/* Trabajemos juntos */}
         <a href="https://wa.me/573144869162" target="_blank" rel="noopener noreferrer" aria-label="Trabajemos juntos por WhatsApp"

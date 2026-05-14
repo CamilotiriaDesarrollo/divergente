@@ -320,7 +320,9 @@ body {
     background: color-mix(in srgb, var(--bg) 95%, transparent);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    overflow-y: visible;
+    max-height: 92svh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 1.2rem 1.5rem 1.5rem;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
     border-bottom-left-radius: 1.25rem;
@@ -336,8 +338,8 @@ body {
   }
 
   .site-header.menu-open .nav-link {
-    font-size: clamp(1.5rem, 7vw, 2.2rem) !important;
-    padding: 0.85rem 0 !important;
+    font-size: clamp(1.25rem, 6vw, 1.8rem) !important;
+    padding: 0.65rem 0 !important;
     border-bottom: 1px solid rgba(148, 136, 184, 0.14);
     letter-spacing: 0.03em !important;
     color: var(--nav-hover);
@@ -606,7 +608,7 @@ body.hover-blog .circle-link { color: #b91d2c; }
     bottom: 1rem;
     right: 0;
     z-index: 5;
-    font-size: clamp(2rem, min(18vw, 11vh), 6.5rem);
+    font-size: clamp(2rem, min(13vw, 5.5svh), 5rem);
     letter-spacing: 0.02em;
     writing-mode: vertical-rl;
     text-orientation: mixed;
@@ -639,6 +641,20 @@ body.hover-blog .circle-link { color: #b91d2c; }
     text-decoration-color: var(--nav-hover);
     text-underline-offset: 4px;
     text-decoration-thickness: 2px;
+  }
+}
+
+/* ── Dynamic viewport height — Chrome/Safari mobile bars excluded ── */
+[data-scroll-container] {
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* ── Mobile section padding — py-28 (7rem) is too tall on phone screens ── */
+@media (max-width: 700px) {
+  .py-28 {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
   }
 }
 
