@@ -20,6 +20,8 @@ export default function Analitica() {
     typeof window !== "undefined" ? window.innerWidth <= 768 : false
   );
   const isMobileRef = useRef(typeof window !== "undefined" ? window.innerWidth <= 768 : false);
+  const svcCardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const svcPeekedCards = useRef<boolean[]>([false, false, false]);
 
   useEffect(() => {
     const check = () => {
@@ -33,11 +35,13 @@ export default function Analitica() {
   }, []);
 
   useEffect(() => {
+    if (isMobile) return;
     const timers = [0, 1, 2].map((i) => setTimeout(() => {
       setPeekCard(i);
     }, 900 + i * 350));
     return () => timers.forEach(clearTimeout);
-  }, []);
+  }, [isMobile]);
+
 
   const CARD_IMAGES = ["/plataformas.gif"];
   const [cardImg, setCardImg] = useState(CARD_IMAGES[0]);
@@ -134,9 +138,9 @@ export default function Analitica() {
       // to complete BEFORE the accordion enters the viewport.
       // accordion_enters_at = header + heroHeight - viewport > 480 (our fade-out end)
       // → heroHeight > 480 + viewport - header ≈ viewport + 400
-      // Using viewport + 500 gives a ~95px safety buffer on all mobile sizes.
+      // Using viewport + 560 gives a ~45px safety buffer on all mobile sizes.
       heroRef.current.style.minHeight = isMobileRef.current
-        ? `${window.innerHeight + 500}px`
+        ? `${window.innerHeight + 560}px`
         : `${window.innerHeight - headerHeight + 1300}px`;
     }
     if (accordionInnerRef.current && !isMobileRef.current) {
@@ -287,8 +291,9 @@ export default function Analitica() {
         });
         if (line2El) {
           line2El.style.transform = ""; // sin slide en mobile
-          // Fade out in-place: starts at y=280, fully gone at y=480
-          const mobFadeP = clamp((y - 280) / 200);
+          // Stay at full opacity until y=500, then fade out over 90px → gone at y=590.
+          // Accordion enters viewport at y≈635 (viewport+560 formula), so 45px buffer.
+          const mobFadeP = clamp((y - 500) / 90);
           line2El.style.opacity = String(1 - mobFadeP);
         }
       } else if (y < SLIDE_START) {
@@ -720,7 +725,7 @@ export default function Analitica() {
                     position: "relative",
                     zIndex: 1,
                     padding: "1.4rem",
-                    height: isMobile ? "auto" : "100%",
+                    height: "100%",
                     display: "flex",
                     flexDirection: "column",
                     gap: "0.9rem",
@@ -731,6 +736,25 @@ export default function Analitica() {
                     overflow: "hidden",
                     boxSizing: "border-box",
                   }}>
+                    {/* Mobile: cabecera con número, código y flecha para cerrar */}
+                    {isMobile && (
+                      <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        flexShrink: 0,
+                        paddingBottom: "0.5rem",
+                        borderBottom: "1px solid rgba(148,136,184,0.18)",
+                      }}>
+                        <span style={{ fontFamily: "var(--font-montserrat), sans-serif", fontSize: "13px", fontWeight: 700, color: "#9333EA", opacity: 0.55, flexShrink: 0 }}>
+                          {card.num}
+                        </span>
+                        <code style={{ fontFamily: "monospace", fontSize: "0.68rem", color: "#9488b8", opacity: 0.6, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {card.code}
+                        </code>
+                        <span style={{ color: "#9333EA", opacity: 0.7, fontSize: "20px", fontWeight: 300, flexShrink: 0, lineHeight: 1 }}>∧</span>
+                      </div>
+                    )}
                     {/* Número fantasma de fondo */}
                     <span style={{
                       position: "absolute",
@@ -772,7 +796,7 @@ export default function Analitica() {
                         ))}
                       </div>
                     ) : (
-                      <div style={{ margin: 0, fontFamily: "monospace", fontSize: "0.8rem", lineHeight: 1.7, color: "var(--copy)", flex: isMobile ? "none" : 1, minHeight: 0 }}>
+                      <div style={{ margin: 0, fontFamily: "monospace", fontSize: "0.8rem", lineHeight: 1.7, color: "var(--copy)", flex: 1, minHeight: 0 }}>
                         {card.content}
                       </div>
                     )}
@@ -931,16 +955,26 @@ export default function Analitica() {
             .svc-item-row:hover { background: rgba(120,80,200,0.1); padding-left: 1rem; }
           }
           .svc-para { opacity: 0.45; }
-          .svc-action { opacity: 0.5; transition: opacity 0.4s ease; }
+          .svc-action { opacity: 1; transition: opacity 0.4s ease; }
+          .svc-flip-arrow { animation: svc-arrow-glow 2.2s ease-in-out infinite alternate; }
+          .svc-vuelve { order: -1; padding-top: 0; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(100,70,180,0.2); }
+          .svc-vuelve-arrow { animation: svc-vuelve-glow 2.2s ease-in-out infinite alternate; }
           @media (hover: hover) {
             .svc-card:hover .svc-card-front { border-color: rgba(147,51,234,0.3); }
-            .svc-card:hover .svc-action { opacity: 1; }
           }
           @keyframes card-peek {
             0%   { transform: rotateY(0deg); }
             35%  { transform: rotateY(42deg); }
             70%  { transform: rotateY(40deg); }
             100% { transform: rotateY(0deg); }
+          }
+          @keyframes svc-arrow-glow {
+            from { text-shadow: 0 0 6px rgba(145,254,230,0.6); filter: brightness(1); }
+            to   { text-shadow: 0 0 20px rgba(145,254,230,1), 0 0 40px rgba(147,51,234,0.55); filter: brightness(1.35); }
+          }
+          @keyframes svc-vuelve-glow {
+            from { text-shadow: 0 0 6px rgba(147,51,234,0.6); filter: brightness(1); }
+            to   { text-shadow: 0 0 20px rgba(147,51,234,1), 0 0 40px rgba(100,40,200,0.55); filter: brightness(1.35); }
           }
           .svc-card-inner.is-peeking {
             animation: card-peek 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -952,6 +986,37 @@ export default function Analitica() {
             .svc-card { height: 500px !important; }
             .svc-card.is-flipped { height: 640px !important; }
             .svc-card.is-flipped.has-item { height: 1100px !important; }
+          }
+          @media (max-width: 768px) {
+            /* Fixed card — same visual size on every mobile screen */
+            .svc-card,
+            .svc-card.is-flipped,
+            .svc-card.is-flipped.has-item { height: 460px !important; transition: none !important; }
+
+            /* GPU hints */
+            .svc-card-front { -webkit-transform: translateZ(0.01px); }
+            .svc-card-back {
+              background-color: #d8c8f4 !important;
+              -webkit-transform: rotateY(180deg) translateZ(0.01px) !important;
+              overflow-y: auto; -webkit-overflow-scrolling: touch;
+              padding: 1rem !important;
+            }
+
+            /* Typography scales with viewport so all text fits the fixed card */
+            .svc-para { overflow: hidden; align-items: flex-start !important; }
+            .svc-para-inner {
+              font-size: clamp(0.58rem, 2.9vw, 0.78rem) !important;
+              line-height: 1.6 !important;
+              gap: 0.45rem !important;
+            }
+
+            /* Interactive affordances — mobile overrides only */
+            .svc-vuelve-arrow { font-size: 1.6rem !important; }
+            .svc-item-name { font-size: 18px !important; text-align: left !important; }
+            .svc-item-row { border-bottom: 1.5px solid rgba(147,51,234,0.28) !important; padding: 0.75rem 0.5rem !important; }
+            .svc-item-row:last-child { border-bottom: none !important; }
+            .svc-item-row:active { background: rgba(147,51,234,0.1); transition: none; }
+            .svc-item-chevron { font-size: 1.3rem !important; color: #9333EA !important; opacity: 0.8 !important; }
           }
         `}</style>
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(ellipse at 20% 50%, rgba(147,51,234,0.12) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(145,254,230,0.07) 0%, transparent 50%)", pointerEvents: "none" }} />
@@ -995,26 +1060,34 @@ export default function Analitica() {
                 ],
               },
             ] as { num: string; label: string; bgImage?: string; paragraph?: string; items: { name: string; desc?: string; paragraph?: string; image?: string }[] }[]).map((card, i) => (
-              <div key={card.num} className={`svc-card${openService === i ? " is-flipped" : ""}${openItem?.[0] === i ? " has-item" : ""}`}
+              <div key={card.num} ref={el => { svcCardRefs.current[i] = el; }}
+                className={`svc-card${openService === i ? " is-flipped" : ""}${openItem?.[0] === i ? " has-item" : ""}`}
                 style={{ height: openService === i ? (openItem?.[0] === i ? "960px" : "560px") : "480px", transition: "height 0.45s cubic-bezier(0.4,0,0.2,1)" }}
-                onClick={() => { if (openService !== i) setOpenService(i); }}
-                onMouseEnter={() => { if (openService !== i && peekCard === null) { setPeekCard(i); } }}>
+                onClick={() => {
+                  if (openService !== i) {
+                    setOpenService(i);
+                  } else if (isMobile) {
+                    setOpenService(null);
+                    setOpenItem(null);
+                  }
+                }}
+                onMouseEnter={() => { if (!isMobile && openService !== i && peekCard === null) { setPeekCard(i); } }}>
                 <div className={`svc-card-inner${peekCard === i && openService !== i ? " is-peeking" : ""}`}
                   onAnimationEnd={() => setPeekCard(null)}>
                   {/* FRENTE */}
                   <div className="svc-card-front">
                     {card.bgImage && <div style={{ position: "absolute", inset: 0, backgroundImage: `url('${card.bgImage}')`, backgroundSize: "cover", backgroundPosition: "center", opacity: 0.28, filter: "grayscale(0.2) hue-rotate(220deg) saturate(1.1)" }} />}
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(10,4,22,0.92) 0%, rgba(26,10,48,0.6) 100%)" }} />
-                    <div style={{ position: "relative", zIndex: 1, display: "flex", gap: "1.5rem", height: "100%", padding: "2rem" }}>
+                    <div style={{ position: "relative", zIndex: 1, display: "flex", gap: isMobile ? "0.6rem" : "1.5rem", height: "100%", padding: isMobile ? "1.1rem" : "2rem" }}>
                       <div style={{ display: "flex", alignItems: "center" }}>
-                        <h3 style={{ fontFamily: "var(--font-eastman)", fontSize: "clamp(1.4rem, 2vw, 2rem)", fontWeight: 400, textTransform: "uppercase", color: "var(--mint)", margin: 0, lineHeight: 1.05, letterSpacing: "0.03em", writingMode: "vertical-rl", transform: "rotate(180deg)" }}>{card.label}</h3>
+                        <h3 style={{ fontFamily: "var(--font-eastman)", fontSize: isMobile ? "1rem" : "clamp(1.4rem, 2vw, 2rem)", fontWeight: 400, textTransform: "uppercase", color: "var(--mint)", margin: 0, lineHeight: 1.05, letterSpacing: "0.03em", writingMode: "vertical-rl", transform: "rotate(180deg)" }}>{card.label}</h3>
                       </div>
                       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                         <div style={{ display: "flex", justifyContent: "flex-end", paddingBottom: "0.6rem" }}>
-                          <span className="svc-action" style={{ fontFamily: "var(--font-montserrat)", letterSpacing: "0.04em", color: "var(--mint)", display: "flex", alignItems: "center", gap: "0.3rem" }}><span style={{ fontSize: "1.6rem" }}>↺</span><span style={{ fontSize: "0.82rem" }}>dale la vuelta</span></span>
+                          <span className="svc-action" style={{ fontFamily: "var(--font-montserrat)", letterSpacing: "0.04em", color: "var(--mint)", display: "flex", alignItems: "center", gap: "0.3rem" }}><span className="svc-flip-arrow" style={{ fontSize: "1.6rem" }}>↺</span><span style={{ fontSize: "0.82rem" }}>dale la vuelta</span></span>
                         </div>
                         <div className="svc-para" style={{ flex: 1, display: "flex", alignItems: "center" }}>
-                          {card.paragraph && <div style={{ fontFamily: "var(--font-montserrat)", fontSize: "0.85rem", color: "rgba(245,245,240,0.85)", lineHeight: 1.8, display: "flex", flexDirection: "column", gap: "0.75rem" }}>{card.paragraph.split("\n\n").map((p, k) => <p key={k} style={{ margin: 0 }}>{p.split("**").map((part, pi) => pi % 2 === 1 ? <strong key={pi}>{part}</strong> : part)}</p>)}</div>}
+                          {card.paragraph && <div className="svc-para-inner" style={{ fontFamily: "var(--font-montserrat)", fontSize: "0.85rem", color: "rgba(245,245,240,0.85)", lineHeight: 1.8, display: "flex", flexDirection: "column", gap: "0.75rem" }}>{card.paragraph.split("\n\n").map((p, k) => <p key={k} style={{ margin: 0 }}>{p.split("**").map((part, pi) => pi % 2 === 1 ? <strong key={pi}>{part}</strong> : part)}</p>)}</div>}
                         </div>
                       </div>
                     </div>
@@ -1033,8 +1106,8 @@ export default function Analitica() {
                           >
                             {/* Título */}
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 0.25rem" }}>
-                              <p style={{ margin: 0, fontFamily: "var(--font-eastman)", fontSize: "18px", fontWeight: 400, color: isItemOpen ? "#9333EA" : "#7040a8", lineHeight: 1.3, transition: "color 0.25s ease", textAlign: "center", letterSpacing: "0.02em" }}>{item.name}</p>
-                              <span style={{ color: "#8b78b8", fontSize: "1rem", flexShrink: 0, marginLeft: "0.5rem", transition: "transform 0.3s ease", display: "inline-block", transform: isItemOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+                              <p className="svc-item-name" style={{ margin: 0, fontFamily: "var(--font-eastman)", fontSize: "18px", fontWeight: 400, color: isItemOpen ? "#9333EA" : "#7040a8", lineHeight: 1.3, transition: "color 0.25s ease", textAlign: "center", letterSpacing: "0.02em" }}>{item.name}</p>
+                              <span className="svc-item-chevron" style={{ color: "#8b78b8", fontSize: "1rem", flexShrink: 0, marginLeft: "0.5rem", transition: "transform 0.3s ease", display: "inline-block", transform: isItemOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
                             </div>
                             {/* Panel expandido */}
                             <div style={{ overflow: "hidden", maxHeight: isItemOpen ? "1200px" : "0", opacity: isItemOpen ? 1 : 0, transition: "max-height 0.65s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease" }}>
@@ -1059,9 +1132,9 @@ export default function Analitica() {
                         );
                       })}
                     </div>
-                    <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: "0.75rem", cursor: "pointer" }}
+                    <div className="svc-vuelve" style={{ display: "flex", justifyContent: "flex-end", paddingTop: 0, cursor: "pointer" }}
                       onClick={(e) => { e.stopPropagation(); setOpenService(null); setOpenItem(null); }}>
-                      <span style={{ fontFamily: "var(--font-montserrat)", fontSize: "1.1rem", color: "#8b7ab8", fontWeight: 700 }}>↻</span>
+                      <span className="svc-vuelve-arrow" style={{ fontFamily: "var(--font-montserrat)", fontSize: "1.1rem", color: "#8b7ab8", fontWeight: 700 }}>↻</span>
                       <span style={{ fontFamily: "var(--font-montserrat)", fontSize: "0.8rem", fontWeight: 700, color: "#8b7ab8", letterSpacing: "0.04em", marginLeft: "0.3rem", alignSelf: "center" }}>Vuelve</span>
                     </div>
                   </div>
@@ -1073,30 +1146,57 @@ export default function Analitica() {
       </section>
 
       {/* ── Por Qué Divergente ── */}
-      <section className="py-28" style={{}}>
-        <div className="section-wrap flex flex-col gap-8 lg:flex-row lg:gap-20 lg:items-center">
-          <div className="flex-[3]">
-            <span className="section-label">Por qué Divergente</span>
-            <h2 className="section-heading">Tecnología con propósito humano.</h2>
-            <div className="body-copy" style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              <p>Construimos apps, plataformas web y soluciones en software pensadas desde las personas que las van a usar. Diseñamos arquitectura de soluciones digitales y tecnológicas. La tecnología al servicio del propósito, no al revés.</p>
-              <p className="italic">Para organizaciones y emprendedores que quieren entender su realidad — no solo medirla.</p>
-            </div>
+      <section className="py-28" style={{ background: "#f0ecff", position: "relative", overflow: "hidden" }}>
+        {/* imagen con colores naturales — anclada al fondo para mostrar la mujer con el canasto */}
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "url('/svc/tecnologia%20con%20proposito.png')", backgroundSize: "cover", backgroundPosition: "68% bottom", opacity: 0.58, filter: "brightness(1.06) saturate(1.15)", zIndex: 0, pointerEvents: "none" }} />
+        {/* velo en el lado del texto */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(95deg, rgba(240,236,255,0.9) 0%, rgba(240,236,255,0.6) 45%, rgba(240,236,255,0.08) 100%)", zIndex: 0, pointerEvents: "none" }} />
+        <div className="section-wrap" style={{ position: "relative", zIndex: 1 }}>
+          <span className="section-label" style={{ color: "#9333ea" }}>Por qué Divergente</span>
+          <h2 className="section-heading">Tecnología con propósito humano.</h2>
+          <div className="body-copy" style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: "44rem", color: "#2a1250" }}>
+            <p>Construimos apps, plataformas web, soluciones digitales e inteligencia artificial para que las personas hagan lo que solo las personas pueden hacer:</p>
+            <p><strong>Pensar, Decidir, Crear, Sentir.</strong></p>
+            <p>Automatizamos lo repetitivo, integramos lo complejo y diseñamos arquitecturas que liberan tiempo, energía y atención para que tu equipo se dedique a lo importante.</p>
+            <p className="italic" style={{ color: "#4a2d72" }}>La tecnología no está aquí para reemplazarnos. Está aquí para devolvernos a lo humano.</p>
           </div>
-          <div className="flex-[2] placeholder-illo rounded-full hidden lg:block" style={{ aspectRatio: "1" }} />
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section className="py-28" style={{}}>
-        <div className="section-wrap" style={{ maxWidth: "52rem", textAlign: "center", margin: "0 auto" }}>
-          <h2 className="section-heading">
-            Si tienes datos, pero no sabes qué decisión tomar,<br />empecemos a mirar mejor.
-          </h2>
-          <button className="cta-btn" style={{ marginTop: "2rem" }}>
-            Diseñar una ruta de analítica →
-          </button>
+      {/* ── CTA / Footer ── */}
+      <section style={{ background: "#f0ecff", position: "relative", overflow: "hidden", minHeight: "62vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", paddingTop: "5rem", paddingBottom: "2em" }}>
+
+        {/* Trabajemos juntos */}
+        <a href="https://wa.me/573144869162" target="_blank" rel="noopener noreferrer" aria-label="Trabajemos juntos por WhatsApp"
+          style={{ fontFamily: "var(--font-montserrat)", fontSize: "clamp(0.95rem, 1.4vw, 1.3rem)", color: "#b09fd8", letterSpacing: "0.08em", textDecoration: "none", textTransform: "uppercase", fontWeight: 600, display: "flex", alignItems: "center", gap: "0.45rem", position: "relative", zIndex: 1 }}>
+          Trabajemos juntos
+        </a>
+
+        {/* Barra social horizontal — mismos íconos y transiciones del home */}
+        <div style={{ display: "flex", flexDirection: "row", gap: "clamp(22px, 1.4vw, 36px)", zIndex: 2, marginTop: "1.5rem", position: "relative" }}>
+          <a className="circle-link" data-brand="youtube" href="https://youtube.com/@divergenteamc?si=NVXi67gk721DWYF9" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+            <svg className="icon-default" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.6 3.6 12 3.6 12 3.6s-7.6 0-9.4.5A3 3 0 0 0 .5 6.2C0 8 0 12 0 12s0 4 .5 5.8a3 3 0 0 0 2.1 2.1c1.8.5 9.4.5 9.4.5s7.6 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 16 24 12 24 12s0-4-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z" /></svg>
+            <svg className="icon-hover" viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.6 3.6 12 3.6 12 3.6s-7.6 0-9.4.5A3 3 0 0 0 .5 6.2C0 8 0 12 0 12s0 4 .5 5.8a3 3 0 0 0 2.1 2.1c1.8.5 9.4.5 9.4.5s7.6 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 16 24 12 24 12s0-4-.5-5.8z" fill="#FF0000" /><polygon points="9.6,15.6 15.9,12 9.6,8.4" fill="#FFFFFF" /></svg>
+          </a>
+          <a className="circle-link" data-brand="instagram" href="https://www.instagram.com/divergente.amc/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <svg className="icon-default" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 3.3.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 3.2-1.7 4.8-4.9 4.9-1.3.1-1.6.1-4.9.1s-3.6 0-4.8-.1c-3.3-.1-4.8-1.7-4.9-4.9C2.2 15.6 2.2 15.3 2.2 12s0-3.6.1-4.8C2.4 3.9 4 2.3 7.2 2.3c1.2-.1 1.6-.1 4.8-.1zm0-2.2C8.7 0 8.3 0 7.1.1 2.7.3.3 2.7.1 7.1.1 8.3 0 8.7 0 12c0 3.3 0 3.7.1 4.9.2 4.4 2.6 6.8 7 7C8.3 24 8.7 24 12 24s3.7 0 4.9-.1c4.4-.2 6.8-2.6 7-7 .1-1.2.1-1.6.1-4.9s0-3.7-.1-4.9C23.7 2.7 21.3.3 16.9.1 15.7 0 15.3 0 12 0zm0 5.8a6.2 6.2 0 1 0 0 12.4A6.2 6.2 0 0 0 12 5.8zm0 10.2a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-11.8a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8z" /></svg>
+            <svg className="icon-hover" viewBox="0 0 24 24" aria-hidden="true"><defs><radialGradient id="ig-grad2" cx="0.3" cy="1" r="1.2"><stop offset="0%" stopColor="#FED576" /><stop offset="25%" stopColor="#F47133" /><stop offset="55%" stopColor="#BC3081" /><stop offset="85%" stopColor="#4C63D2" /></radialGradient></defs><rect x="2" y="2" width="20" height="20" rx="5" fill="url(#ig-grad2)" /><rect x="6" y="6" width="12" height="12" rx="3.5" fill="none" stroke="#fff" strokeWidth="1.6" /><circle cx="12" cy="12" r="3" fill="none" stroke="#fff" strokeWidth="1.6" /><circle cx="17" cy="7" r="0.9" fill="#fff" /></svg>
+          </a>
+          <a className="circle-link" data-brand="linkedin" href="https://www.linkedin.com/in/camilo-tiria/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+            <svg className="icon-default" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.4 20.4h-3.4v-5.3c0-1.3 0-2.9-1.8-2.9s-2 1.4-2 2.8v5.4H9.8V9h3.3v1.6h.1c.5-.9 1.6-1.8 3.3-1.8 3.5 0 4.1 2.3 4.1 5.3v6.3zM5.3 7.4a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm1.7 13H3.6V9h3.4v11.4zM22.2 0H1.8C.8 0 0 .8 0 1.7v20.6C0 23.2.8 24 1.8 24h20.4c1 0 1.8-.8 1.8-1.7V1.7C24 .8 23.2 0 22.2 0z" /></svg>
+            <svg className="icon-hover" viewBox="0 0 24 24" aria-hidden="true"><rect x="0" y="0" width="24" height="24" rx="4" fill="#0A66C2" /><path d="M20.4 20.4h-3.4v-5.3c0-1.3 0-2.9-1.8-2.9s-2 1.4-2 2.8v5.4H9.8V9h3.3v1.6h.1c.5-.9 1.6-1.8 3.3-1.8 3.5 0 4.1 2.3 4.1 5.3v6.3zM5.3 7.4a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm1.7 13H3.6V9h3.4v11.4z" fill="#FFFFFF" /></svg>
+          </a>
+          <a className="circle-link" data-brand="whatsapp" href="https://wa.me/573144869162" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+            <svg className="icon-default" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.05 4.91A9.82 9.82 0 0 0 12 2C6.48 2 2 6.48 2 12c0 1.65.41 3.27 1.18 4.71L2.05 22l5.43-1.43A9.95 9.95 0 0 0 12 22c5.52 0 10-4.48 10-10 0-2.66-1.05-5.18-2.95-7.09z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><path d="M16.83 14.42c-.27-.13-1.6-.79-1.85-.88-.25-.09-.43-.13-.61.13-.18.27-.7.88-.86 1.06-.16.18-.31.2-.58.07-.27-.13-1.14-.42-2.18-1.34-.81-.72-1.35-1.6-1.51-1.87-.16-.27-.02-.42.12-.55.12-.12.27-.31.4-.47.13-.16.18-.27.27-.45.09-.18.04-.34-.02-.47-.07-.13-.61-1.46-.83-2-.22-.53-.45-.45-.61-.46-.16-.01-.34-.01-.52-.01-.18 0-.47.07-.72.34-.25.27-.95.93-.95 2.27 0 1.34.97 2.63 1.11 2.81.13.18 1.91 2.92 4.63 4.09.65.28 1.15.45 1.55.58.65.21 1.24.18 1.7.11.52-.08 1.6-.65 1.83-1.28.22-.63.22-1.17.16-1.28-.07-.11-.25-.18-.52-.31z" fill="currentColor" /></svg>
+            <svg className="icon-hover" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.05 4.91A9.82 9.82 0 0 0 12 2C6.48 2 2 6.48 2 12c0 1.65.41 3.27 1.18 4.71L2.05 22l5.43-1.43A9.95 9.95 0 0 0 12 22c5.52 0 10-4.48 10-10 0-2.66-1.05-5.18-2.95-7.09z" fill="none" stroke="#25D366" strokeWidth="1.4" strokeLinejoin="round" /><path d="M16.83 14.42c-.27-.13-1.6-.79-1.85-.88-.25-.09-.43-.13-.61.13-.18.27-.7.88-.86 1.06-.16.18-.31.2-.58.07-.27-.13-1.14-.42-2.18-1.34-.81-.72-1.35-1.6-1.51-1.87-.16-.27-.02-.42.12-.55.12-.12.27-.31.4-.47.13-.16.18-.27.27-.45.09-.18.04-.34-.02-.47-.07-.13-.61-1.46-.83-2-.22-.53-.45-.45-.61-.46-.16-.01-.34-.01-.52-.01-.18 0-.47.07-.72.34-.25.27-.95.93-.95 2.27 0 1.34.97 2.63 1.11 2.81.13.18 1.91 2.92 4.63 4.09.65.28 1.15.45 1.55.58.65.21 1.24.18 1.7.11.52-.08 1.6-.65 1.83-1.28.22-.63.22-1.17.16-1.28-.07-.11-.25-.18-.52-.31z" fill="#25D366" /></svg>
+          </a>
         </div>
+
+        {/* DIVERGENTE gigante — mitad recortada al fondo */}
+        <div style={{ position: "absolute", bottom: "-0.12em", left: 0, right: 0, textAlign: "center", lineHeight: 0.82, userSelect: "none", pointerEvents: "none", zIndex: 0, overflow: "visible" }}>
+          <span style={{ fontFamily: "var(--font-eastman)", fontSize: "clamp(3rem, 15vw, 19rem)", fontWeight: 400, textTransform: "uppercase", color: "rgba(147,51,234,0.14)", letterSpacing: "-0.01em", display: "block", whiteSpace: "nowrap" }}>DIVERGENTE</span>
+        </div>
+
       </section>
 
     </div>

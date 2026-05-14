@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { label: "Analítica", scheme: "hover-analitica", href: "/analitica" },
   { label: "Metodologías", scheme: "hover-metodologias", href: "/metodologias" },
   { label: "Creatividad", scheme: "hover-creatividad", href: "/creatividad" },
-  { label: "Portafolio", scheme: "hover-portafolio", href: "/portafolio" },
+  { label: "Servicios", scheme: "hover-portafolio", href: "/servicios" },
   { label: "Blog", scheme: "hover-blog", href: "/blog" },
 ] as const;
 
@@ -19,7 +19,7 @@ const ROUTE_TO_INDEX: Record<string, number> = {
   "/analitica": 0,
   "/metodologias": 1,
   "/creatividad": 2,
-  "/portafolio": 3,
+  "/servicios": 3,
   "/blog": 4,
 };
 
@@ -35,7 +35,7 @@ const ROUTE_LABELS = [
   "Analítica",
   "Metodologías",
   "Creatividad",
-  "Portafolio",
+  "Servicios",
   "Blog",
 ] as const;
 
@@ -106,8 +106,8 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
       const containerRect = wm.parentElement!.getBoundingClientRect();
       const leftPad = textRect.left - containerRect.left;
       const rightPad = containerRect.right - textRect.right;
-      nav.style.paddingLeft = `${Math.max(0, leftPad + 12)}px`;
-      nav.style.paddingRight = `${Math.max(0, rightPad)}px`;
+      nav.style.paddingLeft = `${Math.max(36, leftPad + 16)}px`;
+      nav.style.paddingRight = `${Math.max(36, rightPad + 16)}px`;
     };
     document.fonts.ready.then(alignNav);
     window.addEventListener("resize", alignNav);
@@ -268,13 +268,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               />
               <span data-header-text className="logo-text">DIVERGENTE</span>
             </Link>
-            <nav
-              ref={navRef}
-              aria-label="Navegación principal"
-              className="site-nav"
-            >
-              {navLinks}
-            </nav>
             <button
               className="site-menu-btn"
               onClick={() => setMenuOpen(o => !o)}
@@ -289,6 +282,13 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                 )}
               </svg>
             </button>
+            <nav
+              ref={navRef}
+              aria-label="Navegación principal"
+              className="site-nav"
+            >
+              {navLinks}
+            </nav>
           </header>
 
           <main className="site-main">{children}</main>
@@ -318,7 +318,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
 
       {!isSubpage && (
       <div className="social-circles">
-        <a className="circle-link" data-brand="youtube" href="#" aria-label="YouTube">
+        <a className="circle-link" data-brand="youtube" href="https://youtube.com/@divergenteamc?si=NVXi67gk721DWYF9" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
           <svg className="icon-default" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.6 3.6 12 3.6 12 3.6s-7.6 0-9.4.5A3 3 0 0 0 .5 6.2C0 8 0 12 0 12s0 4 .5 5.8a3 3 0 0 0 2.1 2.1c1.8.5 9.4.5 9.4.5s7.6 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 16 24 12 24 12s0-4-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z" />
           </svg>
@@ -327,7 +327,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             <polygon points="9.6,15.6 15.9,12 9.6,8.4" fill="#FFFFFF" />
           </svg>
         </a>
-        <a className="circle-link" data-brand="instagram" href="#" aria-label="Instagram">
+        <a className="circle-link" data-brand="instagram" href="https://www.instagram.com/divergente.amc/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
           <svg className="icon-default" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M12 2.2c3.2 0 3.6 0 4.9.1 3.3.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 3.2-1.7 4.8-4.9 4.9-1.3.1-1.6.1-4.9.1s-3.6 0-4.8-.1c-3.3-.1-4.8-1.7-4.9-4.9C2.2 15.6 2.2 15.3 2.2 12s0-3.6.1-4.8C2.4 3.9 4 2.3 7.2 2.3c1.2-.1 1.6-.1 4.8-.1zm0-2.2C8.7 0 8.3 0 7.1.1 2.7.3.3 2.7.1 7.1.1 8.3 0 8.7 0 12c0 3.3 0 3.7.1 4.9.2 4.4 2.6 6.8 7 7C8.3 24 8.7 24 12 24s3.7 0 4.9-.1c4.4-.2 6.8-2.6 7-7 .1-1.2.1-1.6.1-4.9s0-3.7-.1-4.9C23.7 2.7 21.3.3 16.9.1 15.7 0 15.3 0 12 0zm0 5.8a6.2 6.2 0 1 0 0 12.4A6.2 6.2 0 0 0 12 5.8zm0 10.2a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-11.8a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8z" />
           </svg>
@@ -346,7 +346,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             <circle cx="17" cy="7" r="0.9" fill="#fff" />
           </svg>
         </a>
-        <a className="circle-link" data-brand="linkedin" href="#" aria-label="LinkedIn">
+        <a className="circle-link" data-brand="linkedin" href="https://www.linkedin.com/in/camilo-tiria/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
           <svg className="icon-default" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M20.4 20.4h-3.4v-5.3c0-1.3 0-2.9-1.8-2.9s-2 1.4-2 2.8v5.4H9.8V9h3.3v1.6h.1c.5-.9 1.6-1.8 3.3-1.8 3.5 0 4.1 2.3 4.1 5.3v6.3zM5.3 7.4a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm1.7 13H3.6V9h3.4v11.4zM22.2 0H1.8C.8 0 0 .8 0 1.7v20.6C0 23.2.8 24 1.8 24h20.4c1 0 1.8-.8 1.8-1.7V1.7C24 .8 23.2 0 22.2 0z" />
           </svg>
@@ -358,7 +358,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             />
           </svg>
         </a>
-        <a className="circle-link" data-brand="whatsapp" href="#" aria-label="WhatsApp">
+        <a className="circle-link" data-brand="whatsapp" href="https://wa.me/573144869162" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
           <svg className="icon-default" viewBox="0 0 24 24" aria-hidden="true">
             <path
               d="M19.05 4.91A9.82 9.82 0 0 0 12 2C6.48 2 2 6.48 2 12c0 1.65.41 3.27 1.18 4.71L2.05 22l5.43-1.43A9.95 9.95 0 0 0 12 22c5.52 0 10-4.48 10-10 0-2.66-1.05-5.18-2.95-7.09z"

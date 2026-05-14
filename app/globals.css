@@ -139,7 +139,7 @@ body {
 
 .hero-copy {
   max-width: 52ch;
-  font-size: clamp(14px, 1vw, 32px);
+  font-size: clamp(15px, 1.05vw, 33px);
   line-height: 1.7;
   font-weight: 400;
   color: var(--copy);
@@ -291,6 +291,10 @@ body {
     color: var(--mint);
     flex-shrink: 0;
     margin-left: auto;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    transition: background 0.2s ease;
   }
 
   .site-nav {
@@ -303,8 +307,50 @@ body {
     margin-top: 0.75rem;
   }
 
+  /* ── Menu-open overlay ── */
+  .site-header.menu-open {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    z-index: 200;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    background: color-mix(in srgb, var(--bg) 95%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    overflow-y: visible;
+    padding: 1.2rem 1.5rem 1.5rem;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+    border-bottom-left-radius: 1.25rem;
+    border-bottom-right-radius: 1.25rem;
+  }
+
   .site-header.menu-open .site-nav {
     display: flex;
+    padding: 2rem 0 0.5rem;
+    margin-top: 0.5rem;
+    border-top: 1.5px solid rgba(147, 51, 234, 0.2);
+    gap: 0;
+  }
+
+  .site-header.menu-open .nav-link {
+    font-size: clamp(1.5rem, 7vw, 2.2rem) !important;
+    padding: 0.85rem 0 !important;
+    border-bottom: 1px solid rgba(148, 136, 184, 0.14);
+    letter-spacing: 0.03em !important;
+    color: var(--nav-hover);
+  }
+
+  .site-header.menu-open .nav-link:last-child {
+    border-bottom: none !important;
+  }
+
+  .site-header.menu-open .site-menu-btn {
+    background: color-mix(in srgb, var(--mint) 18%, transparent);
+    border: 1.5px solid color-mix(in srgb, var(--mint) 45%, transparent);
+    color: var(--mint);
   }
 }
 
@@ -556,7 +602,7 @@ body.hover-blog .circle-link { color: #b91d2c; }
   .wordmark-vertical {
     display: block;
     position: fixed;
-    top: 13rem;
+    top: 16rem;
     bottom: 1rem;
     right: 0;
     z-index: 5;
@@ -586,6 +632,13 @@ body.hover-blog .circle-link { color: #b91d2c; }
 
   .nav-link::after {
     display: none !important;
+  }
+
+  .nav-link.is-active {
+    text-decoration: underline;
+    text-decoration-color: var(--nav-hover);
+    text-underline-offset: 4px;
+    text-decoration-thickness: 2px;
   }
 }
 
