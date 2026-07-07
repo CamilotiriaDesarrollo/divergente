@@ -1,0 +1,5 @@
+# terraform.tfvars.example — copiar a terraform.tfvars (IGNORADO por git) y rellenar.
+# NO poner secretos aquí. Los secretos viven en Key Vault / variables protegidas del CI.
+proyecto  = "${PROYECTO}"   # p.ej. pnmc
+entorno   = "dev"
+ubicacion = "brazilsouth"

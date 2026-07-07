@@ -1,0 +1,48 @@
+/* ─────────────────────────────────────────────────────────────
+   ACENTO POR CATEGORÍA — token inyectado desde React por instancia
+   Extracto REAL de Interfase Pagina Inicial/client/src/index.css
+   (líneas ~3690-3744). React pasa style={{ '--c-tema': color }}.
+   ───────────────────────────────────────────────────────────── */
+
+/* Foto de fondo + tinte temático por background-blend-mode.
+   El color del tema (--c-tema) es TAMBIÉN el fallback si la foto no carga:
+   var(--c-tema, #512da8) → nunca queda una tarjeta sin color. */
+.sistema-card__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: var(--c-tema, #512da8);
+  background-image: var(--c-foto, none);   /* url('/fondos/...') inyectada igual */
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: multiply;         /* la foto se tiñe con el color del tema */
+  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Velo oscuro obligatorio → contraste AA del texto sobre cualquier foto */
+.sistema-card__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 6, 16, 0.12) 0%,
+    rgba(8, 6, 16, 0.4) 42%,
+    rgba(8, 6, 16, 0.86) 100%
+  );
+}
+
+/* Chip de categoría: usa el MISMO token de acento */
+.sistema-card__tema {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--c-tema, #512da8);
+  margin-bottom: 10px;
+}

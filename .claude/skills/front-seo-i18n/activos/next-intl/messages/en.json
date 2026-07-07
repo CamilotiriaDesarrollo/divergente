@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "home_title": "Home",
+    "home_description": "Site description in English (max ~150 characters)."
+  },
+  "nav": {
+    "home": "Home",
+    "catalog": "Catalog",
+    "about": "About"
+  },
+  "home": {
+    "heading": "Main heading",
+    "cta": "Explore"
+  }
+}

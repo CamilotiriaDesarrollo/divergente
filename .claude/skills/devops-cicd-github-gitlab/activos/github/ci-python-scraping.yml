@@ -1,0 +1,32 @@
+# CI para linea datos/scraping en Python (proyecto Scraper).
+# Copiar a .github/workflows/ci-python.yml. Sin secretos.
+# VERSIONES (verificar): Python 3.12. ruff reemplaza flake8+black+isort en una sola herramienta.
+name: CI (Python)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: ruff check .            # lint
+      - run: ruff format --check .   # formato (gate, no autofix en CI)
+      - run: pytest -q --junitxml=pytest-results.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pytest-results
+          path: pytest-results.xml

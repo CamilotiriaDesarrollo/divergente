@@ -1,0 +1,53 @@
+# .github/workflows/pruebas-carga.yml
+# Prueba de carga con k6. Gate smoke -> carga completa con informe HTML como artefacto.
+# Portable a GitLab CI: ver activos/ci/pruebas-carga.gitlab-ci.yml (misma imagen grafana/k6).
+#
+# Configurar antes de usar:
+#   - Variable de repo:  BASE_URL_STAGING  (Settings > Variables)  -> entorno NO productivo
+#   - Secret de repo:    LOAD_TEST_TOKEN   (Settings > Secrets)    -> token de prueba, nunca real de prod
+name: pruebas-carga
+
+on:
+  workflow_dispatch: {}      # ejecución manual (recomendado: NO en cada push, por costo y tiempo)
+  schedule:
+    - cron: '0 6 * * 1'      # lunes 06:00 UTC — fuera de jornada
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar k6
+        uses: grafana/setup-k6-action@v1
+      - name: Smoke (gate)
+        uses: grafana/run-k6-action@v1
+        with:
+          path: .claude/skills/qa-pruebas-carga-k6-jmeter/activos/k6/smoke-test.js
+        env:
+          BASE_URL: ${{ vars.BASE_URL_STAGING }}
+
+  carga:
+    needs: smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: grafana/setup-k6-action@v1
+      - name: Prueba de carga + reporte HTML
+        # k6 devuelve exit 99 si se incumple un umbral -> este step (y el job) fallan = gate.
+        run: k6 run .claude/skills/qa-pruebas-carga-k6-jmeter/activos/k6/load-stress-test.js --summary-export=summary.json
+        env:
+          BASE_URL: ${{ vars.BASE_URL_STAGING }}
+          TOKEN: ${{ secrets.LOAD_TEST_TOKEN }}
+          K6_WEB_DASHBOARD: 'true'
+          K6_WEB_DASHBOARD_EXPORT: 'reporte-carga.html'
+      - name: Publicar informe (incluso si falló el umbral)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: informe-pruebas-carga
+          path: |
+            reporte-carga.html
+            summary.json

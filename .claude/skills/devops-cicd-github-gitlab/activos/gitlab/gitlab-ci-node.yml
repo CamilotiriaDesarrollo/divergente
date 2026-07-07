@@ -1,0 +1,55 @@
+# Equivalente institucional (GitLab CI) del CI de Node client/server.
+# Copiar a .gitlab-ci.yml en la RAIZ del repo del GitLab del ministerio.
+# Es el mismo pipeline logico que ../github/ci-node-monorepo.yml (mismas etapas: lint/format/test/build),
+# escrito en la sintaxis de GitLab para garantizar la portabilidad exigida en F3.
+#
+# GOBIERNO: el GitLab institucional suele tener runners aislados sin internet publico.
+#   -> Reemplaza "image: node:22" por el mirror interno, p.ej. registry.entidad.gov.co/library/node:22
+#   -> Si no hay acceso a npmjs, configura el proxy/registry interno en .npmrc.
+stages:
+  - quality
+  - build
+
+default:
+  image: node:22   # <-- cambiar por mirror interno en GitLab institucional
+  cache:
+    key:
+      files:
+        - client/package-lock.json
+    paths:
+      - .npm/
+      - client/node_modules/
+
+variables:
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
+
+# Corre en Merge Requests y en la rama main (equivale a los triggers push/pull_request de GHA).
+.rules_mr_main: &rules_mr_main
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+client:lint:
+  stage: quality
+  <<: *rules_mr_main
+  before_script:
+    - cd client && npm ci
+  script:
+    - npm run lint
+    - npm run format:check
+
+client:build:
+  stage: build
+  <<: *rules_mr_main
+  before_script:
+    - cd client && npm ci
+  script:
+    - npm test --if-present -- --run
+    - npm run build
+  artifacts:
+    paths:
+      - client/dist
+    expire_in: 1 week
+
+# El job server es analogo: before_script "cd server && npm ci"; script lint + test + build.
+# Duplica client:build cambiando la carpeta y quita el artifact si el server no genera dist estatico.

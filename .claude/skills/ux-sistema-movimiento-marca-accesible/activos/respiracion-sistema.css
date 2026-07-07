@@ -1,0 +1,101 @@
+/* ════════════════════════════════════════════════════════════
+   Sistema de movimiento "Respiración"  ·  clases .mt-*
+   Curvas largas, suaves, sin rebotes. Inhalar / exhalar.
+   Origen: DivergenteWEB/app/globals.css (líneas ~942-1225)
+   Copiar este bloque, renombrar los tokens de color a la paleta
+   de la marca destino y conservar la curva --breathe-ease.
+   ════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Curva firma: entra rápido, frena largo, SIN rebote (no overshoot). */
+  --breathe-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Paleta de sección — reemplazar por la de la marca destino. */
+  --mt-green: #005f46;
+  --mt-sage: #7cc9a7;
+  --mt-cream: #fff1b8;
+  --mt-accent: #c9764a; /* acento cálido — usar con moderación */
+}
+
+/* ── Reveal base — opacidad + desplazamiento sutil, duración larga ──
+   Estado inicial oculto; el JS añade .is-in cuando entra al viewport.
+   El stagger se hace por style={{ transitionDelay: '0.15s' }} en el JSX,
+   NO con clases distintas. */
+.mt-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 1.2s var(--breathe-ease), transform 1.2s var(--breathe-ease);
+  will-change: opacity, transform;
+}
+.mt-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Línea que se dibuja sola — divisor entre secciones ──
+   scaleX desde transform-origin izquierdo: la regla "crece" al entrar. */
+.mt-rule {
+  height: 1px;
+  background: color-mix(in srgb, var(--mt-green) 35%, transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 1.4s var(--breathe-ease);
+}
+.mt-rule.is-in { transform: scaleX(1); }
+
+/* ── Halo / forma orgánica que respira (inhala 4s / exhala 4s = ciclo 8s) ──
+   CLAVE: usa la propiedad `scale` (independiente de `transform`) para NO
+   pisar el translate de centrado de un halo posicionado con transform. */
+@keyframes mt-breathe {
+  0%, 100% { scale: 1;    opacity: 0.62; }
+  50%      { scale: 1.06; opacity: 0.80; }
+}
+.mt-breathe {
+  animation: mt-breathe 8s ease-in-out infinite;
+  will-change: scale, opacity;
+}
+
+/* ── Punto / círculo que late muy sutil ── */
+@keyframes mt-pulse {
+  0%, 100% { transform: scale(1);    opacity: 0.85; }
+  50%      { transform: scale(1.04); opacity: 1; }
+}
+.mt-pulse { animation: mt-pulse 8s ease-in-out infinite; }
+
+/* ── Tarjeta con hover que expande con calma (0.9s, misma curva) ──
+   Solo bajo @media (hover:hover) para no disparar en táctil. */
+.mt-card {
+  transition: transform 0.9s var(--breathe-ease), box-shadow 0.9s var(--breathe-ease),
+    border-color 0.9s var(--breathe-ease), background 0.9s var(--breathe-ease);
+}
+@media (hover: hover) {
+  .mt-card:hover {
+    transform: translateY(-4px) scale(1.015);
+    box-shadow: 0 24px 60px -28px rgba(0, 95, 70, 0.35);
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   NEUTRALIZACIÓN por prefers-reduced-motion
+   Regla: todo el sistema colapsa a "aparición instantánea".
+   El estado inicial oculto de .mt-reveal DEBE forzarse visible aquí,
+   porque el JS deja de añadir .is-in cuando reduceMotion está activo
+   (ver reveal-observer.tsx). Sin este bloque la página queda en blanco.
+   ════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .mt-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .mt-rule {
+    transform: scaleX(1) !important;
+    transition: none !important;
+  }
+  .mt-breathe,
+  .mt-pulse {
+    animation: none !important;
+  }
+  .mt-card {
+    transition: none !important;
+  }
+}

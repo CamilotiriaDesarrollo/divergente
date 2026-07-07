@@ -1,0 +1,48 @@
+/* Chips de filtro accesibles para vitrina de sistemas.
+   Origen: Interfase Pagina Inicial / client/src/index.css (líneas 3310-3356).
+   Dos filas de chips (tema + público) + contador aria-live. Color de tema por --chip-c. */
+
+.vitrina__filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.vitrina__filtros + .vitrina__filtros {
+  margin-top: 8px; /* separa la fila de "tema" de la de "público" */
+}
+.vitrina__chip {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: rgba(26, 18, 48, 0.75);
+  background: rgba(81, 45, 168, 0.06);
+  border: 1px solid rgba(81, 45, 168, 0.16);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.vitrina__chip:hover { background: rgba(81, 45, 168, 0.12); }
+.vitrina__chip:focus-visible {           /* foco visible obligatorio AA */
+  outline: 2px solid var(--vit-acento);
+  outline-offset: 2px;
+}
+.vitrina__chip--activo {                  /* estado seleccionado = aria-pressed=true */
+  background: #512DA8;
+  color: #fff;
+  border-color: #512DA8;
+}
+.vitrina__chip-dot {                      /* punto de color del tema (--chip-c inyectado desde React) */
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 7px;
+  vertical-align: middle;
+  background: var(--chip-c, #fff);
+}
+.vitrina__meta {                          /* contador "N de M sistemas", con aria-live=polite en el JSX */
+  font-size: 13px;
+  color: rgba(26, 18, 48, 0.5);
+  margin: 18px 0 22px;
+}

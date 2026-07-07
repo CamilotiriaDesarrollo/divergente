@@ -1,0 +1,41 @@
+# .github/dependabot.yml — actualización automática de dependencias (LÍNEA PRIVADA, GitHub)
+# Nativo de GitHub, gratis también en repos privados. Alternativa portable: activos/renovate.json
+# N0: ajusta los `directory` a la estructura real (monorepo client/server vs Next.js monolito).
+version: 2
+updates:
+  # Frontend del monorepo (Vite+React) o app Next.js
+  - package-ecosystem: "npm"
+    directory: "/client"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Bogota"
+    open-pull-requests-limit: 5
+    labels: ["dependencias", "seguridad"]
+    groups:
+      # Agrupa patches menores para no ahogar en PRs
+      menores:
+        update-types: ["minor", "patch"]
+
+  # Backend Express del monorepo
+  - package-ecosystem: "npm"
+    directory: "/server"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["dependencias", "seguridad"]
+
+  # Scripts de datos/scraping en Python (si aplica)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencias", "seguridad"]
+
+  # Las propias GitHub Actions (se vuelven obsoletas y vulnerables también)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels: ["ci", "seguridad"]

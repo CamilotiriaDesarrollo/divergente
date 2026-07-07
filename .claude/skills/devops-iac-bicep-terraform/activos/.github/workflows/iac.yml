@@ -1,0 +1,61 @@
+name: IaC — plan en PR, apply en merge con aprobación
+
+# Línea privada (GitHub). Autenticación por OIDC: sin secretos de larga vida.
+# AZURE_CLIENT_ID / TENANT_ID / SUBSCRIPTION_ID son IDENTIFICADORES (no credenciales),
+# guardados como secrets/variables del repo. La confianza la da la federated credential.
+
+on:
+  pull_request:
+    paths: ['infra/**']
+  push:
+    branches: [main]
+    paths: ['infra/**']
+
+permissions:
+  id-token: write   # requerido por OIDC hacia Azure
+  contents: read
+  pull-requests: write
+
+env:
+  WORKDIR: infra/terraform
+  TF_VERSION: '1.9.0'   # VERIFICAR / o usar OpenTofu con opentofu/setup-opentofu
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: '${{ env.TF_VERSION }}' }
+      - run: terraform init
+        working-directory: ${{ env.WORKDIR }}
+      - run: terraform plan -out=tfplan
+        working-directory: ${{ env.WORKDIR }}
+      - uses: actions/upload-artifact@v4
+        with: { name: tfplan, path: ${{ env.WORKDIR }}/tfplan }
+
+  apply:
+    needs: plan
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: produccion   # <- Settings > Environments: exigir "Required reviewers" (aprobación humana)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: '${{ env.TF_VERSION }}' }
+      - run: terraform init
+        working-directory: ${{ env.WORKDIR }}
+      - uses: actions/download-artifact@v4
+        with: { name: tfplan, path: ${{ env.WORKDIR }} }
+      - run: terraform apply -auto-approve tfplan   # aplica EXACTAMENTE el plan revisado (sin plan no hay apply)
+        working-directory: ${{ env.WORKDIR }}

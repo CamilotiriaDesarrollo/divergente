@@ -1,0 +1,65 @@
+{
+  "_comment": "Búsquedas de LinkedIn Jobs (F039) para cosecha vía Chrome DevTools MCP. Cada entrada se convierte en una URL de /jobs/search/ con f_TPR=r604800 (últimos 7 días) y sortBy=DD. Las corre un humano/Claude con pausas — NO van en el cron desatendido. Ver scripts/ingest_linkedin.py y la memoria fase3-linkedin-chrome-mcp.",
+  "defaults": {
+    "f_TPR": "r604800",
+    "sortBy": "DD"
+  },
+  "searches": [
+    {
+      "id": "LI-CT-01",
+      "perfil": "CT",
+      "label": "Liderazgo datos/IA",
+      "keywords": "\"Director de Datos\" OR \"Chief Data Officer\" OR \"Head of Data\" OR \"Director de Analítica\" OR \"AI Strategy\"",
+      "location": "Colombia"
+    },
+    {
+      "id": "LI-CT-02",
+      "perfil": "CT",
+      "label": "Liderazgo producto",
+      "keywords": "\"Head of Product\" OR \"Director de Producto\" OR \"VP de Producto\" OR \"Chief Product Officer\"",
+      "location": "Colombia"
+    },
+    {
+      "id": "LI-CT-03",
+      "perfil": "CT",
+      "label": "Transformación digital / GovTech",
+      "keywords": "(\"transformación digital\" OR \"innovación pública\" OR GovTech OR \"gobierno digital\") AND (director OR líder OR head)",
+      "location": "Colombia"
+    },
+    {
+      "id": "LI-CT-04",
+      "perfil": "CT",
+      "label": "Automatización / IA aplicada",
+      "keywords": "(\"automatización\" OR \"inteligencia artificial\" OR \"no-code\" OR \"low-code\") AND (líder OR consultor OR director OR head)",
+      "location": "Colombia"
+    },
+    {
+      "id": "LI-CT-05",
+      "perfil": "CT",
+      "label": "Cultura / industrias creativas",
+      "keywords": "(\"gestión cultural\" OR \"industrias creativas\" OR \"economía creativa\") AND (director OR coordinador OR gerente OR líder)",
+      "location": "Colombia"
+    },
+    {
+      "id": "LI-CT-06",
+      "perfil": "CT",
+      "label": "Datos/IA remoto LATAM",
+      "keywords": "\"Director de Datos\" OR \"Head of Data\" OR \"Data Strategy\" OR \"AI Product\"",
+      "location": "Latin America"
+    },
+    {
+      "id": "LI-DIV-01",
+      "perfil": "DIV",
+      "label": "Consultoría datos/digital",
+      "keywords": "(consultoría OR consultant) AND (\"transformación digital\" OR datos OR GovTech OR analítica)",
+      "location": "Colombia"
+    },
+    {
+      "id": "LI-DIV-02",
+      "perfil": "DIV",
+      "label": "Cooperación internacional",
+      "keywords": "(\"cooperación internacional\" OR \"organismo multilateral\" OR BID OR PNUD OR CAF) AND (consultor OR especialista OR asesor)",
+      "location": "Colombia"
+    }
+  ]
+}

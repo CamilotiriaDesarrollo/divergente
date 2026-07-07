@@ -1,0 +1,10 @@
+[
+  {
+    "id": "1",
+    "nombre": "Sistema Ejemplo",
+    "descripcion": "Descripción del sistema",
+    "url": "https://ejemplo.mincultura.gov.co",
+    "categoria": "General",
+    "activo": true
+  }
+]

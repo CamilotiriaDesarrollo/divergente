@@ -1,0 +1,87 @@
+# Pipeline CI de la pirámide de tests — monorepo client/server (Node/TS).
+# Portable a GitLab CI: ver .gitlab-ci.yml en esta misma carpeta (mismas etapas y orden).
+# Se apoya en la skill devops-cicd-github-gitlab para el andamiaje del pipeline.
+# SIN secretos: los valores sensibles entran por `secrets`/`vars` del repo, nunca en el YAML.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '22' # LTS vigente a 2026; ajusta al que fije el proyecto en .nvmrc
+
+jobs:
+  # --- Compuerta 0: estilo (skill qa-kit-eslint9-prettier-monorepo) ---
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+
+  # --- BASE + MEDIO de la pirámide: unit + integración con cobertura ---
+  # Rápido (segundos-minutos). Corre en CADA PR. Es la compuerta real de calidad.
+  test-unit-integracion:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run test:coverage # -> vitest run --coverage (umbrales en vitest.config.ts)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: '**/coverage/**' # informe de cobertura exigible en F5 / DI-GSI-010
+
+  # --- CIMA de la pirámide: E2E Playwright ---
+  # Lento y frágil por naturaleza -> NO en cada PR. Solo en push a main (o nightly con cron).
+  e2e:
+    runs-on: ubuntu-latest
+    needs: test-unit-integracion
+    if: github.ref == 'refs/heads/main'
+    env:
+      BASE_URL: ${{ vars.BASE_URL }}
+      OIDC_TEST_USER: ${{ secrets.OIDC_TEST_USER }}
+      OIDC_TEST_PASSWORD: ${{ secrets.OIDC_TEST_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/ # incluye trazas y screenshots de fallos
+
+  # --- OPCIONAL: línea gobierno (.NET / SQL Server, estándar M-GSI-002) ---
+  # Descomenta si el proyecto es .NET. Usa un SQL Server efímero como servicio.
+  # test-dotnet:
+  #   runs-on: ubuntu-latest
+  #   needs: lint
+  #   services:
+  #     sqlserver:
+  #       image: mcr.microsoft.com/mssql/server:2022-latest
+  #       env: { ACCEPT_EULA: 'Y', MSSQL_SA_PASSWORD: ${{ secrets.MSSQL_SA_PASSWORD }} }
+  #       ports: ['1433:1433']
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-dotnet@v4
+  #       with: { dotnet-version: '8.0.x' }
+  #     - run: dotnet test --collect:"XPlat Code Coverage" --logger trx

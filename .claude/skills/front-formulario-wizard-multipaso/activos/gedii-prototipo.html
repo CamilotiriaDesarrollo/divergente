@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GEDII · Ficha de Investigación Cultural</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0B1220;
+    --ink-2: #1a2332;
+    --paper: #F5F1E8;
+    --paper-warm: #EDE6D3;
+    --cream: #FBF8F0;
+    --accent: #C73E1D;         /* rojo tierra institucional */
+    --accent-deep: #8B2A14;
+    --ochre: #D4A017;           /* ocre */
+    --jade: #2D5F3F;            /* verde selva */
+    --muted: #6b6558;
+    --line: #D4CCB8;
+    --line-strong: #9a907a;
+    --innov: #D4A017;
+
+    /* TRIAGE colors */
+    --t1: #C73E1D;
+    --t2: #E67E22;
+    --t3: #D4A017;
+    --t4: #2D5F3F;
+    --t5: #2C5F8D;
+
+    --shadow-soft: 0 1px 2px rgba(11,18,32,.04), 0 8px 24px rgba(11,18,32,.06);
+    --shadow-md: 0 2px 4px rgba(11,18,32,.06), 0 12px 32px rgba(11,18,32,.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--paper); color: var(--ink); font-family: 'Inter Tight', sans-serif; -webkit-font-smoothing: antialiased; font-size: 15px; line-height: 1.5; }
+
+  /* ============ LAYOUT ============ */
+  .app {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ============ SIDEBAR ============ */
+  aside {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 28px 24px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(245,241,232,.12);
+  }
+  .brand-mark {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .brand-mark::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background: var(--accent);
+    display: inline-block;
+    border-radius: 2px;
+    transform: translateY(-2px);
+  }
+  .brand-sub { font-size: 11px; color: rgba(245,241,232,.55); letter-spacing: .08em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; }
+
+  .ficha-meta {
+    background: rgba(245,241,232,.04);
+    border: 1px solid rgba(245,241,232,.1);
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .ficha-meta .title { font-family: 'Fraunces', serif; font-size: 16px; line-height: 1.3; color: var(--cream); }
+  .ficha-meta .dep { color: rgba(245,241,232,.6); font-size: 12px; }
+  .ficha-meta .row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: rgba(245,241,232,.5); font-family: 'JetBrains Mono', monospace; padding-top: 6px; border-top: 1px solid rgba(245,241,232,.08); }
+
+  .progress-global { display: flex; flex-direction: column; gap: 6px; }
+  .progress-global-label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: rgba(245,241,232,.55); font-family: 'JetBrains Mono', monospace; display: flex; justify-content: space-between; }
+  .progress-global-bar { height: 6px; background: rgba(245,241,232,.08); border-radius: 3px; overflow: hidden; }
+  .progress-global-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--ochre)); transition: width .5s cubic-bezier(.2,.8,.2,1); }
+
+  .steps-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .15s ease;
+    font-size: 13px;
+    color: rgba(245,241,232,.7);
+    border: none;
+    background: transparent;
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+  }
+  .step-item:hover { background: rgba(245,241,232,.06); color: var(--cream); }
+  .step-item.active { background: rgba(199,62,29,.14); color: var(--cream); }
+  .step-item.active .step-num { background: var(--accent); color: var(--cream); }
+  .step-num {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    background: rgba(245,241,232,.08);
+    color: rgba(245,241,232,.7);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all .15s ease;
+  }
+  .step-item .step-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .step-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: rgba(245,241,232,.15);
+    flex-shrink: 0;
+  }
+  .step-item.has-content .step-dot { background: var(--ochre); }
+  .step-item.complete .step-dot { background: var(--jade); }
+  .step-item.complete .step-num { background: var(--jade); color: var(--cream); }
+
+  .sidebar-footer {
+    padding-top: 16px;
+    border-top: 1px solid rgba(245,241,232,.1);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 11px;
+    color: rgba(245,241,232,.45);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .save-indicator { display: flex; align-items: center; gap: 8px; }
+  .save-dot { width: 6px; height: 6px; background: var(--jade); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+
+  /* ============ MAIN ============ */
+  main {
+    padding: 40px 56px 80px;
+    max-width: 920px;
+    width: 100%;
+  }
+
+  .page-header {
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 28px;
+    border-bottom: 2px solid var(--ink);
+    position: relative;
+  }
+  .page-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .page-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 44px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .page-title em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--accent);
+  }
+  .page-desc {
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 640px;
+    margin-top: 6px;
+  }
+
+  .innov-badge {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--ink);
+    color: var(--innov);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--innov);
+    box-shadow: 0 4px 16px rgba(212,160,23,.2);
+  }
+  .innov-badge.active { display: flex; animation: slideIn .4s cubic-bezier(.2,.8,.2,1); }
+  .innov-badge::before {
+    content: '◆';
+    color: var(--innov);
+    font-size: 14px;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============ FORMS ============ */
+  .section { display: none; }
+  .section.active { display: block; animation: fadeIn .3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .field-group {
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-soft);
+  }
+  .field-group-title {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    margin-bottom: 4px;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .field-group-sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .field { margin-bottom: 18px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-row { display: grid; gap: 16px; margin-bottom: 18px; }
+  .field-row.col-2 { grid-template-columns: 1fr 1fr; }
+  .field-row.col-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  label {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--ink-2);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .required::after {
+    content: '★';
+    color: var(--accent);
+    font-size: 11px;
+    margin-left: 2px;
+  }
+  .label-help {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-left: 4px;
+  }
+
+  input[type=text], input[type=date], input[type=number], textarea, select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    background: white;
+    color: var(--ink);
+    transition: all .15s ease;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--ink);
+    box-shadow: 0 0 0 3px rgba(11,18,32,.08);
+  }
+  textarea { resize: vertical; min-height: 90px; line-height: 1.5; font-family: inherit; }
+  input::placeholder, textarea::placeholder { color: #9a8f7a; font-style: italic; }
+
+  /* Custom checkbox pills */
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px;
+  }
+  .options-grid.narrow { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .options-grid.wide { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+  .opt-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all .15s ease;
+    font-size: 13px;
+    line-height: 1.4;
+    position: relative;
+  }
+  .opt-card:hover { border-color: var(--line-strong); background: var(--paper-warm); }
+  .opt-card input { position: absolute; opacity: 0; pointer-events: none; }
+  .opt-card .check {
+    flex-shrink: 0;
+    width: 18px; height: 18px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 4px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+    transition: all .15s ease;
+  }
+  .opt-card .check::after {
+    content: '';
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 2px;
+    opacity: 0;
+    transform: scale(0);
+    transition: all .15s ease;
+  }
+  .opt-card input:checked ~ .check { border-color: var(--ink); background: var(--ink); }
+  .opt-card input:checked ~ .check::after { opacity: 1; transform: scale(1); background: var(--cream); }
+  .opt-card:has(input:checked) { background: var(--paper-warm); border-color: var(--ink); }
+  .opt-card .opt-label { flex: 1; }
+  .opt-card .opt-sub { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+  /* Triage color chips */
+  .triage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+  .triage-card { position: relative; border-left: 4px solid var(--line); padding-left: 12px; }
+  .triage-card[data-t="1"] { border-left-color: var(--t1); }
+  .triage-card[data-t="2"] { border-left-color: var(--t2); }
+  .triage-card[data-t="3"] { border-left-color: var(--t3); }
+  .triage-card[data-t="4"] { border-left-color: var(--t4); }
+  .triage-card[data-t="5"] { border-left-color: var(--t5); }
+
+  /* Dimension cards with innov flag */
+  .dim-card[data-innov="true"]::after {
+    content: '◆';
+    position: absolute;
+    top: 8px; right: 10px;
+    color: var(--innov);
+    font-size: 13px;
+    opacity: .5;
+  }
+  .dim-card:has(input:checked)[data-innov="true"]::after { opacity: 1; }
+
+  /* Helper info banner */
+  .info-banner {
+    background: linear-gradient(135deg, rgba(212,160,23,.1), rgba(199,62,29,.05));
+    border-left: 3px solid var(--ochre);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    font-size: 13px;
+    color: var(--ink-2);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .info-banner strong { color: var(--accent); font-weight: 600; }
+
+  /* Footer nav */
+  .section-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+  .btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary { background: var(--ink); color: var(--cream); }
+  .btn-primary:hover { background: var(--ink-2); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+  .btn-ghost:hover { background: var(--paper-warm); }
+  .btn-accent { background: var(--accent); color: var(--cream); }
+  .btn-accent:hover { background: var(--accent-deep); transform: translateY(-1px); }
+
+  /* Section title inside page */
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .section-counter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: .1em;
+  }
+
+  /* Rating stars for Paso 9 */
+  .rating-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; padding: 14px 0; border-bottom: 1px dashed var(--line); }
+  .rating-row:last-child { border-bottom: none; }
+  .rating-row-label { font-size: 13px; font-weight: 500; }
+  .rating-row-hint { font-size: 12px; color: var(--muted); font-weight: 400; display: block; margin-top: 2px; }
+  .rating-stars { display: flex; gap: 3px; }
+  .rating-star {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: white;
+    border: 1px solid var(--line);
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--line-strong);
+    display: flex; align-items: center; justify-content: center;
+    transition: all .1s ease;
+    font-family: inherit;
+    font-weight: 600;
+  }
+  .rating-star:hover { border-color: var(--ochre); color: var(--ochre); }
+  .rating-star.selected { background: var(--ochre); color: white; border-color: var(--ochre); }
+
+  /* Keyword chips */
+  .chips-input { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: white; min-height: 42px; }
+  .chip { background: var(--ink); color: var(--cream); padding: 4px 10px 4px 12px; border-radius: 6px; font-size: 12px; display: inline-flex; align-items: center; gap: 8px; }
+  .chip button { background: none; border: none; color: rgba(245,241,232,.6); cursor: pointer; padding: 0; font-size: 14px; line-height: 1; }
+  .chip button:hover { color: var(--cream); }
+  .chips-input input { border: none; outline: none; flex: 1; min-width: 100px; padding: 4px 6px; font-size: 13px; }
+
+  /* Ethics grid - smaller pills */
+  .ethics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 6px;
+  }
+  .ethics-grid .opt-card { padding: 8px 12px; font-size: 12px; }
+
+  /* Checklist grid */
+  .checklist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 6px;
+  }
+  .checklist-grid .opt-card { padding: 10px 14px; font-size: 12px; }
+
+  /* Mobile */
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    aside {
+      position: relative;
+      height: auto;
+      padding: 20px;
+    }
+    .steps-nav { flex-direction: row; overflow-x: auto; gap: 6px; padding-bottom: 4px; }
+    .step-item { min-width: 180px; flex-shrink: 0; }
+    main { padding: 28px 20px 60px; }
+    .page-title { font-size: 32px; }
+    .field-row.col-2, .field-row.col-3 { grid-template-columns: 1fr; }
+    .options-grid, .options-grid.narrow, .options-grid.wide { grid-template-columns: 1fr; }
+    .page-header { padding-bottom: 20px; }
+    .innov-badge { position: relative; top: auto; right: auto; margin-top: 12px; display: none; }
+    .innov-badge.active { display: inline-flex; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ============ SIDEBAR ============ -->
+  <aside>
+    <div class="brand">
+      <div class="brand-mark">GEDII</div>
+      <div class="brand-sub">Registro de Investigación · v1.0</div>
+    </div>
+
+    <div class="ficha-meta">
+      <div class="title" id="meta-title">Nueva investigación</div>
+      <div class="dep" id="meta-dep">— Dependencia sin asignar —</div>
+      <div class="row">
+        <span>GEDII-002</span>
+        <span id="meta-code">—</span>
+      </div>
+    </div>
+
+    <div class="progress-global">
+      <div class="progress-global-label">
+        <span>Avance total</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-global-bar">
+        <div class="progress-global-fill" id="progress-fill" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <nav class="steps-nav" id="steps-nav">
+      <!-- Injected by JS -->
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="save-indicator">
+        <span class="save-dot"></span>
+        <span id="save-status">Guardado · ahora</span>
+      </div>
+      <div>Prototipo · Taller Claude</div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main>
+
+    <div class="page-header">
+      <div class="page-eyebrow" id="page-eyebrow">Identificación general</div>
+      <h1 class="page-title" id="page-title">Identificación <em>general</em></h1>
+      <p class="page-desc" id="page-desc">Datos básicos que identifican la investigación dentro del sistema GEDII.</p>
+      <span class="innov-badge" id="innov-badge">Proyecto innovador</span>
+    </div>
+
+    <!-- ==================== IDENTIFICACIÓN ==================== -->
+    <section class="section active" data-step="id">
+      <div class="field-group">
+        <h2 class="field-group-title">Datos de la dependencia</h2>
+        <p class="field-group-sub">Esta información identifica la ficha dentro del repositorio institucional.</p>
+
+        <div class="field-row col-2">
+          <div class="field">
+            <label class="required">Dependencia / Grupo</label>
+            <input type="text" data-field="dependencia" placeholder="Ej: Dirección de Artes">
+          </div>
+          <div class="field">
+            <label class="required">Vigencia / Año</label>
+            <input type="text" data-field="vigencia" placeholder="2026">
+          </div>
+        </div>
+
+        <div class="field-row col-2">
+          <div class="field">
+            <label>Código interno</label>
+            <input type="text" data-field="codigo" placeholder="Ej: DA-INV-001-26">
+          </div>
+          <div class="field">
+            <label>Tipo de estructura</label>
+            <div class="options-grid narrow">
+              <label class="opt-card">
+                <input type="radio" name="estructura" value="grupo">
+                <span class="check"></span>
+                <span class="opt-label">Grupo de Investigación</span>
+              </label>
+              <label class="opt-card">
+                <input type="radio" name="estructura" value="observatorio">
+                <span class="check"></span>
+                <span class="opt-label">Observatorio Cultural</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="required">Título de la investigación</label>
+          <input type="text" data-field="titulo" placeholder="Escriba el título completo">
+        </div>
+
+        <div class="field">
+          <label class="required">Responsable / Líder</label>
+          <input type="text" data-field="responsable" placeholder="Nombre del líder del proceso">
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PASO 0 ==================== -->
+    <section class="section" data-step="0">
+      <div class="field-group">
+        <h2 class="field-group-title">Paso 0 · Identificación de necesidades</h2>
+        <p class="field-group-sub">El punto de partida: ¿qué vacío o tensión motiva esta investigación?</p>
+
+        <div class="field">
+          <label class="required">Necesidad identificada</label>
+          <textarea data-field="necesidad" placeholder="Describa brevemente el vacío de información o tensión que motiva esta investigación"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="required">Fuente de la necesidad <span class="label-help">— seleccione una o más</span></label>
+          <div class="options-grid">
+            <label class="opt-card"><input type="checkbox" name="fuente" value="pasadas"><span class="check"></span><span class="opt-label">Investigaciones pasadas</span></label>
+            <label class="opt-card"><input type="checkbox" name="fuente" value="territorial"><span class="check"></span><span class="opt-label">Información territorial / participativa</span></label>
+            <label class="opt-card"><input type="checkbox" name="fuente" value="alerta"><span class="check"></span><span class="opt-label">Alerta institucional / PNC / normativa</span></label>
+            <label class="opt-card"><input type="checkbox" name="fuente" value="tendencia"><span class="check"></span><span class="opt-label">Tendencia mundial</span></label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PASO 1 ==================== -->
+    <section class="section" data-step="1">
+      <div class="field-group">
+        <h2 class="field-group-title">Paso 1 · Horizonte estratégico (PNC 2024–2038)</h2>
+        <p class="field-group-sub">Alineación con el Plan Nacional de Cultura.</p>
+
+        <div class="field">
+          <label class="required">Horizonte estratégico <span class="label-help">— puede seleccionar más de uno</span></label>
+          <div class="options-grid wide">
+            <label class="opt-card"><input type="checkbox" name="horizonte" value="diversidad"><span class="check"></span><span class="opt-label">Cuidado y protección de la diversidad de la vida</span></label>
+            <label class="opt-card"><input type="checkbox" name="horizonte" value="equidad"><span class="check"></span><span class="opt-label">Equidad, libertad y dignidad para la justicia social, económica y ambiental</span></label>
+            <label class="opt-card"><input type="checkbox" name="horizonte" value="paz"><span class="check"></span><span class="opt-label">La búsqueda permanente de la paz</span></label>
+            <label class="opt-card"><input type="checkbox" name="horizonte" value="bien-publico"><span class="check"></span><span class="opt-label">La cultura como bien público y de interés colectivo</span></label>
+            <label class="opt-card"><input type="checkbox" name="horizonte" value="genero"><span class="check"></span><span class="opt-label">Igualdad y equidad de género</span></label>
+            <label class="opt-card"><input type="checkbox" name="horizonte" value="otro"><span class="check"></span><span class="opt-label">Otro normativo</span></label>
+          </div>
+        </div>
+
+        <div class="field" id="horizonte-otro-wrap" style="display:none">
+          <label>Especifique otro horizonte</label>
+          <input type="text" data-field="horizonte_otro" placeholder="Especifique norma, política o marco de referencia técnico">
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PASO 2 ==================== -->
+    <section class="section" data-step="2">
+      <div class="field-group">
+        <h2 class="field-group-title">Paso 2 · Formulación técnica</h2>
+        <p class="field-group-sub">El corazón de la investigación: pregunta, objetivos y categorías.</p>
+
+        <div class="field">
+          <label class="required">Pregunta de investigación o hipótesis</label>
+          <textarea data-field="pregunta" placeholder="Escriba la pregunta central que guiará la investigación"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="required">Objetivo general</label>
+          <textarea data-field="obj_general" placeholder="Verbo de acción + fenómeno + contexto"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Objetivos específicos</label>
+          <input type="text" data-field="obj_esp_1" placeholder="Objetivo específico 1" style="margin-bottom:8px">
+          <input type="text" data-field="obj_esp_2" placeholder="Objetivo específico 2" style="margin-bottom:8px">
+          <input type="text" data-field="obj_esp_3" placeholder="Objetivo específico 3" style="margin-bottom:8px">
+          <input type="text" data-field="obj_esp_4" placeholder="Objetivo específico 4 (opcional)">
+        </div>
+
+        <div class="field">
+          <label class="required">Categorías / palabras clave <span class="label-help">— 3 a 6 etiquetas</span></label>
+          <div class="chips-input" id="chips-keywords">
+            <input type="text" placeholder="Escriba una categoría y presione Enter">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PASO 3 ==================== -->
+    <section class="section" data-step="3">
+      <div class="field-group">
+        <h2 class="field-group-title">Paso 3 · Posicionamiento estratégico</h2>
+        <p class="field-group-sub">Impacto, clasificación de datos y vinculación de actores.</p>
+
+        <div class="info-banner">
+          <span>◆</span>
+          <div>Si seleccionas <strong>Transversal</strong>, <strong>D3</strong> o <strong>D4</strong>, esta investigación se clasifica como <strong>Proyecto Innovador</strong> (GEDII-002).</div>
+        </div>
+
+        <div class="field">
+          <label class="required">Dimensión de impacto social o normativo</label>
+          <div class="options-grid wide">
+            <label class="opt-card dim-card" data-innov="true"><input type="checkbox" name="dimension" value="TRANSV"><span class="check"></span><span class="opt-label"><strong>Transversal</strong><span class="opt-sub">Impacto en gestión pública y normativa</span></span></label>
+            <label class="opt-card dim-card"><input type="checkbox" name="dimension" value="D1"><span class="check"></span><span class="opt-label"><strong>D1</strong> — Informativo y de visibilidad<span class="opt-sub">Acceso al conocimiento</span></span></label>
+            <label class="opt-card dim-card"><input type="checkbox" name="dimension" value="D2"><span class="check"></span><span class="opt-label"><strong>D2</strong> — Sentido y comprensión<span class="opt-sub">Diálogo de saberes</span></span></label>
+            <label class="opt-card dim-card" data-innov="true"><input type="checkbox" name="dimension" value="D3"><span class="check"></span><span class="opt-label"><strong>D3</strong> — Praxis y apropiación social<span class="opt-sub">Uso y circulación</span></span></label>
+            <label class="opt-card dim-card" data-innov="true"><input type="checkbox" name="dimension" value="D4"><span class="check"></span><span class="opt-label"><strong>D4</strong> — Autonomía de agentes culturales<span class="opt-sub">Agenciamiento</span></span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="required">Clasificación TRIAGE de la información</label>
+          <div class="options-grid triage-grid">
+            <label class="opt-card triage-card" data-t="1"><input type="radio" name="triage" value="1"><span class="check"></span><span class="opt-label"><strong>Nivel 1</strong><span class="opt-sub">Estratégica estructural</span></span></label>
+            <label class="opt-card triage-card" data-t="2"><input type="radio" name="triage" value="2"><span class="check"></span><span class="opt-label"><strong>Nivel 2</strong><span class="opt-sub">Analítica prioritaria</span></span></label>
+            <label class="opt-card triage-card" data-t="3"><input type="radio" name="triage" value="3"><span class="check"></span><span class="opt-label"><strong>Nivel 3</strong><span class="opt-sub">Operativa de gestión</span></span></label>
+            <label class="opt-card triage-card" data-t="4"><input type="radio" name="triage" value="4"><span class="check"></span><span class="opt-label"><strong>Nivel 4</strong><span class="opt-sub">Administrativa o local</span></span></label>
+            <label class="opt-card triage-card" data-t="5"><input type="radio" name="triage" value="5"><span class="check"></span><span class="opt-label"><strong>Nivel 5</strong><span class="opt-sub">Temporal o contextual</span></span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="required">Actores priorizados</label>
+          <div class="options-grid">
+            <label class="opt-card"><input type="checkbox" name="actores" value="A"><span class="check"></span><span class="opt-label"><strong>A</strong> — Actores directos del ecosistema</span></label>
+            <label class="opt-card"><input type="checkbox" name="actores" value="B"><span class="check"></span><span class="opt-label"><strong>B</strong> — Actores institucionales</span></label>
+            <label class="opt-card"><input type="checkbox" name="actores" value="C"><span class="check"></span><span class="opt-label"><strong>C</strong> — Actores indirectos</span></label>
+            <label class="opt-card"><input type="checkbox" name="actores" value="D"><span class="check"></span><span class="opt-label"><strong>D</strong> — Ciudadanía no categorizada</span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Descripción breve de actores clave y su rol</label>
+          <textarea data-field="actores_desc" placeholder="Agentes participantes / Aliados / Públicos / Audiencias / Tercerizadores"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="required">Nivel de vinculación de agentes</label>
+          <div class="options-grid">
+            <label class="opt-card"><input type="radio" name="vinculacion" value="N0"><span class="check"></span><span class="opt-label"><strong>N0</strong> — Divulgación<span class="opt-sub">Sin vinculación directa</span></span></label>
+            <label class="opt-card"><input type="radio" name="vinculacion" value="N1"><span class="check"></span><span class="opt-label"><strong>N1</strong> — Consulta y aporte técnico<span class="opt-sub">Participación puntual e informada</span></span></label>
+            <label class="opt-card"><input type="radio" name="vinculacion" value="N2"><span class="check"></span><span class="opt-label"><strong>N2</strong> — Co-creación metodológica<span class="opt-sub">Corresponsabilidad investigativa</span></span></label>
+            <label class="opt-card"><input type="radio" name="vinculacion" value="N3"><span class="check"></span><span class="opt-label"><strong>N3</strong> — Coinvestigación y apropiación plena<span class="opt-sub">Soberanía del conocimiento</span></span></label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PASO 4 ==================== -->
+    <section class="section" data-step="4">
+      <div class="field-group">
+        <h2 class="field-group-title">Paso 4 · Campo de investigación</h2>
+        <p class="field-group-sub">Defina el campo temático según los 6 campos GEDII.</p>
+
+        <div class="field">
+          <label class="required">Campo de investigación</label>
+          <div class="options-grid wide">
+            <label class="opt-card"><input type="radio" name="campo" value="C1"><span class="check"></span><span class="opt-label"><strong>C1</strong> — Poéticas, Lenguajes y Estéticas</span></label>
+            <label class="opt-card"><input type="radio" name="campo" value="C2"><span class="check"></span><span class="opt-label"><strong>C2</strong> — Transformación Social y Agencia Cultural</span></label>
+            <label class="opt-card"><input type="radio" name="campo" value="C3"><span class="check"></span><span class="opt-label"><strong>C3</strong> — Memorias, Identidades y Crítica</span></label>
+            <label class="opt-card"><input type="radio" name="campo" value="C4"><span class="check"></span><span class="opt-label"><strong>C4</strong> — Gestión Masiva de la Información</span></label>
+            <label class="opt-card"><input type="radio" name="campo" value="C5"><span class="check"></span><span class="opt-label"><strong>C5</strong> — Públicos, experiencias y relaciones culturales</span></label>
+            <label class="opt-card"><input type="radio" name="campo" value="C6"><span class="check"></span><span class="opt-label"><strong>C6</strong> — Innovación Pública y Prospectiva</span></label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PASO 5 ==================== -->
+    <section class="section" data-step="5">
+      <div class="field-group">
+        <h2 class="field-group-title">Paso 5 · Diseño metodológico y ético</h2>
+        <p class="field-group-sub">Enfoque, metodología sombrilla e instrumentos.</p>
+
+        <div class="field">
+          <label class="required">Enfoque metodológico</label>
+          <div class="options-grid narrow">
+            <label class="opt-card"><input type="radio" name="enfoque" value="cuali"><span class="check"></span><span class="opt-label"><strong>A</strong> — Cualitativo</span></label>
+            <label class="opt-card"><input type="radio" name="enfoque" value="cuanti"><span class="check"></span><span class="opt-label"><strong>B</strong> — Cuantitativo</span></label>
+            <label class="opt-card"><input type="radio" name="enfoque" value="mixto"><span class="check"></span><span class="opt-label"><strong>C</strong> — Mixto</span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Metodología sombrilla <span class="label-help">— según el campo seleccionado en el Paso 4</span></label>
+          <select data-field="sombrilla" id="sombrilla-select">
+            <option value="">Primero seleccione un campo en el Paso 4…</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Técnicas e instrumentos principales</label>
+          <textarea data-field="tecnicas" placeholder="Ej.: Entrevista semiestructurada, observación participante, encuesta…"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="required">Componentes éticos aplicables</label>
+          <div class="ethics-grid">
+            <label class="opt-card"><input type="checkbox" name="etica" value="consent"><span class="check"></span><span class="opt-label">Consentimiento informado</span></label>
+            <label class="opt-card"><input type="checkbox" name="etica" value="diferencial"><span class="check"></span><span class="opt-label">Enfoque diferencial</span></label>
+            <label class="opt-card"><input type="checkbox" name="etica" value="sin-dano"><span class="check"></span><span class="opt-label">Acción sin daño</span></label>
+            <label class="opt-card"><input type="checkbox" name="etica" value="datos"><span class="check"></span><span class="opt-label">Protección de datos</span></label>
+            <label class="opt-card"><input type="checkbox" name="etica" value="discap"><span class="check"></span><span class="opt-label">Ajustes para discapacidad</span></label>
+            <label class="opt-card"><input type="checkbox" name="etica" value="saberes"><span class="check"></span><span class="opt-label">Prot. saberes colectivos</span></label>
+            <label class="opt-card"><input type="checkbox" name="etica" value="devolucion"><span class="check"></span><span class="opt-label">Devolución y apropiación</span></label>
+            <label class="opt-card"><input type="checkbox" name="etica" value="lenguaje"><span class="check"></span><span class="opt-label">Lenguaje digno</span></label>
+            <label class="opt-card"><input type="checkbox" name="etica" value="equidad-p"><span class="check"></span><span class="opt-label">Equidad en participación</span></label>
+            <label class="opt-card"><input type="checkbox" name="etica" value="calendarios"><span class="check"></span><span class="opt-label">Resp. calendarios comunit.</span></label>
+            <label class="opt-card"><input type="checkbox" name="etica" value="simbolico"><span class="check"></span><span class="opt-label">Mitig. daño simbólico</span></label>
+            <label class="opt-card"><input type="checkbox" name="etica" value="territorial"><span class="check"></span><span class="opt-label">No daño territorial</span></label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PASO 6 ==================== -->
+    <section class="section" data-step="6">
+      <div class="field-group">
+        <h2 class="field-group-title">Paso 6 · Organización y planeación</h2>
+        <p class="field-group-sub">Planes operativos y cronograma.</p>
+
+        <div class="field"><label>Plan de recolección de información</label><textarea data-field="plan_recol" placeholder="Aspectos clave del plan"></textarea></div>
+        <div class="field"><label>Plan de análisis</label><textarea data-field="plan_analisis" placeholder="Aspectos clave del plan"></textarea></div>
+        <div class="field"><label>Plan de archivo</label><textarea data-field="plan_archivo" placeholder="Aspectos clave del plan"></textarea></div>
+        <div class="field"><label>Plan de divulgación, circulación y apropiación</label><textarea data-field="plan_div" placeholder="Aspectos clave del plan"></textarea></div>
+
+        <div class="field-row col-2">
+          <div class="field"><label>Fecha de inicio</label><input type="date" data-field="fecha_inicio"></div>
+          <div class="field"><label>Fecha cierre estimada</label><input type="date" data-field="fecha_cierre"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PASO 7 ==================== -->
+    <section class="section" data-step="7">
+      <div class="field-group">
+        <h2 class="field-group-title">Paso 7 · Producto esperado</h2>
+        <p class="field-group-sub">Tipo y descripción del entregable de la investigación.</p>
+
+        <div class="field">
+          <label class="required">Tipo de producto <span class="label-help">— seleccione uno o más</span></label>
+          <div class="options-grid">
+            <label class="opt-card"><input type="checkbox" name="producto" value="conocimiento"><span class="check"></span><span class="opt-label">Conocimiento documentado</span></label>
+            <label class="opt-card"><input type="checkbox" name="producto" value="dispositivo"><span class="check"></span><span class="opt-label">Dispositivo cultural</span></label>
+            <label class="opt-card"><input type="checkbox" name="producto" value="estudio"><span class="check"></span><span class="opt-label">Estudio de caso</span></label>
+            <label class="opt-card"><input type="checkbox" name="producto" value="archivo"><span class="check"></span><span class="opt-label">Archivo o repositorio</span></label>
+            <label class="opt-card"><input type="checkbox" name="producto" value="plataforma"><span class="check"></span><span class="opt-label">Herramienta / plataforma TIC</span></label>
+            <label class="opt-card"><input type="checkbox" name="producto" value="metodologia"><span class="check"></span><span class="opt-label">Metodología / modelo replicable</span></label>
+            <label class="opt-card"><input type="checkbox" name="producto" value="mapa"><span class="check"></span><span class="opt-label">Mapa / cartografía</span></label>
+            <label class="opt-card"><input type="checkbox" name="producto" value="caja"><span class="check"></span><span class="opt-label">Caja de herramientas</span></label>
+            <label class="opt-card"><input type="checkbox" name="producto" value="formativo"><span class="check"></span><span class="opt-label">Programa / proceso formativo</span></label>
+            <label class="opt-card"><input type="checkbox" name="producto" value="prototipo"><span class="check"></span><span class="opt-label">Prototipo piloto</span></label>
+            <label class="opt-card"><input type="checkbox" name="producto" value="patrimonial"><span class="check"></span><span class="opt-label">Reconocimiento patrimonial</span></label>
+            <label class="opt-card"><input type="checkbox" name="producto" value="red"><span class="check"></span><span class="opt-label">Red o alianza documentada</span></label>
+            <label class="opt-card"><input type="checkbox" name="producto" value="normativo"><span class="check"></span><span class="opt-label">Instrumento técnico-normativo</span></label>
+            <label class="opt-card"><input type="checkbox" name="producto" value="indicador"><span class="check"></span><span class="opt-label">Indicador / sistema de medición</span></label>
+            <label class="opt-card"><input type="checkbox" name="producto" value="narrativa"><span class="check"></span><span class="opt-label">Narrativa / relato comunitario</span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Descripción del(los) producto(s)</label>
+          <textarea data-field="producto_desc" placeholder="Describa el formato y características específicas del entregable"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PASO 8 ==================== -->
+    <section class="section" data-step="8">
+      <div class="field-group">
+        <h2 class="field-group-title">Paso 8 · Ejecución de lo planeado</h2>
+        <p class="field-group-sub">Estado de la investigación y ajustes documentados.</p>
+
+        <div class="field">
+          <label>Estado de ejecución</label>
+          <div class="options-grid">
+            <label class="opt-card"><input type="radio" name="estado" value="planificada"><span class="check"></span><span class="opt-label">Planificada</span></label>
+            <label class="opt-card"><input type="radio" name="estado" value="curso"><span class="check"></span><span class="opt-label">En curso</span></label>
+            <label class="opt-card"><input type="radio" name="estado" value="ajustes"><span class="check"></span><span class="opt-label">Con ajustes documentados</span></label>
+            <label class="opt-card"><input type="radio" name="estado" value="finalizada"><span class="check"></span><span class="opt-label">Finalizada</span></label>
+            <label class="opt-card"><input type="radio" name="estado" value="suspendida"><span class="check"></span><span class="opt-label">Suspendida</span></label>
+          </div>
+        </div>
+
+        <div class="field"><label>Principales ajustes respecto al diseño original</label><textarea data-field="ajustes" placeholder="Documente cambios de territorio, metodología, cronograma, etc."></textarea></div>
+        <div class="field"><label>Evidencias de campo disponibles</label><textarea data-field="evidencias" placeholder="Ej.: Bitácoras, actas, bases primarias, registros audiovisuales"></textarea></div>
+      </div>
+    </section>
+
+    <!-- ==================== PASO 9 ==================== -->
+    <section class="section" data-step="9">
+      <div class="field-group">
+        <h2 class="field-group-title">Paso 9 · Evaluación del proceso</h2>
+        <p class="field-group-sub">Escala: 1 = No logrado · 2 = Parcial · 3 = Con limitaciones · 4 = Logrado · 5 = Superado</p>
+
+        <div id="rating-container">
+          <!-- Inyectado por JS -->
+        </div>
+
+        <div class="field" style="margin-top:24px">
+          <label>Lecciones aprendidas</label>
+          <textarea data-field="lecciones" placeholder="¿Qué funcionó bien? ¿Qué debe mejorarse en futuras investigaciones?"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="required">¿Qué ocurre después de esta investigación?</label>
+          <div class="options-grid wide">
+            <label class="opt-card"><input type="radio" name="continuidad" value="finaliza"><span class="check"></span><span class="opt-label">Finaliza aquí<span class="opt-sub">No requiere continuidad</span></span></label>
+            <label class="opt-card"><input type="radio" name="continuidad" value="replica"><span class="check"></span><span class="opt-label">Se replica en otros territorios<span class="opt-sub">O poblaciones</span></span></label>
+            <label class="opt-card"><input type="radio" name="continuidad" value="profundiza"><span class="check"></span><span class="opt-label">Se profundiza temática<span class="opt-sub">Nueva fase del fenómeno</span></span></label>
+            <label class="opt-card"><input type="radio" name="continuidad" value="cambia"><span class="check"></span><span class="opt-label">Cambia de campo o metodología<span class="opt-sub">Nuevo enfoque</span></span></label>
+            <label class="opt-card"><input type="radio" name="continuidad" value="observatorio"><span class="check"></span><span class="opt-label">Pasa a observatorio permanente</span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Justificación de continuidad</label>
+          <textarea data-field="justif_cont" placeholder="¿Por qué se recomienda esta opción? ¿Qué condiciones lo posibilitan?"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PASO 10 ==================== -->
+    <section class="section" data-step="10">
+      <div class="field-group">
+        <h2 class="field-group-title">Paso 10 · Proyección de nuevas investigaciones</h2>
+        <p class="field-group-sub">Líneas futuras y recomendaciones derivadas.</p>
+
+        <div class="field"><label>Nuevas preguntas o líneas de indagación</label><textarea data-field="nuevas_preguntas" placeholder="Vacíos no resueltos, hallazgos emergentes o limitaciones"></textarea></div>
+        <div class="field"><label>Recomendaciones de política pública</label><textarea data-field="recomendaciones" placeholder="Sugerencias dirigidas a tomadores de decisiones (opcional)"></textarea></div>
+      </div>
+
+      <div class="field-group">
+        <h2 class="field-group-title">Divulgación, circulación y apropiación (DCA)</h2>
+        <div class="field">
+          <label>Estado del plan DCA</label>
+          <div class="options-grid">
+            <label class="opt-card"><input type="radio" name="dca" value="no"><span class="check"></span><span class="opt-label">No iniciado</span></label>
+            <label class="opt-card"><input type="radio" name="dca" value="formulacion"><span class="check"></span><span class="opt-label">En formulación</span></label>
+            <label class="opt-card"><input type="radio" name="dca" value="ejecucion"><span class="check"></span><span class="opt-label">En ejecución</span></label>
+            <label class="opt-card"><input type="radio" name="dca" value="finalizado"><span class="check"></span><span class="opt-label">Finalizado y evaluado</span></label>
+          </div>
+        </div>
+        <div class="field"><label>Canales y formatos de divulgación</label><textarea data-field="canales" placeholder="Ej.: Informe PDF público, dashboard, evento de devolución"></textarea></div>
+        <div class="field"><label>Espacios de devolución y apropiación social</label><textarea data-field="espacios" placeholder="Ej.: Taller con comunidad, foro regional, Mesa Técnica"></textarea></div>
+      </div>
+
+      <div class="field-group">
+        <h2 class="field-group-title">Paquete de transferencia (GEDII–001)</h2>
+        <p class="field-group-sub">Entregables al repositorio institucional.</p>
+        <div class="checklist-grid">
+          <label class="opt-card"><input type="checkbox" name="pkg" value="informe"><span class="check"></span><span class="opt-label">Informe ejecutivo final</span></label>
+          <label class="opt-card"><input type="checkbox" name="pkg" value="ficha"><span class="check"></span><span class="opt-label">Ficha de investigación</span></label>
+          <label class="opt-card"><input type="checkbox" name="pkg" value="bases"><span class="check"></span><span class="opt-label">Bases de datos depuradas</span></label>
+          <label class="opt-card"><input type="checkbox" name="pkg" value="diccionario"><span class="check"></span><span class="opt-label">Diccionario de datos</span></label>
+          <label class="opt-card"><input type="checkbox" name="pkg" value="instrumentos"><span class="check"></span><span class="opt-label">Instrumentos aplicados</span></label>
+          <label class="opt-card"><input type="checkbox" name="pkg" value="bitacoras"><span class="check"></span><span class="opt-label">Bitácoras de campo</span></label>
+          <label class="opt-card"><input type="checkbox" name="pkg" value="actas"><span class="check"></span><span class="opt-label">Actas de participación</span></label>
+          <label class="opt-card"><input type="checkbox" name="pkg" value="consent"><span class="check"></span><span class="opt-label">Consentimientos informados</span></label>
+          <label class="opt-card"><input type="checkbox" name="pkg" value="coautoria"><span class="check"></span><span class="opt-label">Acuerdos de coautoría</span></label>
+          <label class="opt-card"><input type="checkbox" name="pkg" value="devolucion"><span class="check"></span><span class="opt-label">Constancias de devolución</span></label>
+          <label class="opt-card"><input type="checkbox" name="pkg" value="lecciones"><span class="check"></span><span class="opt-label">Matriz lecciones aprendidas</span></label>
+          <label class="opt-card"><input type="checkbox" name="pkg" value="gaps"><span class="check"></span><span class="opt-label">Matriz gaps y proyecciones</span></label>
+          <label class="opt-card"><input type="checkbox" name="pkg" value="eval"><span class="check"></span><span class="opt-label">Ficha de evaluación</span></label>
+          <label class="opt-card"><input type="checkbox" name="pkg" value="comunic"><span class="check"></span><span class="opt-label">Material comunicativo</span></label>
+        </div>
+
+        <div class="field" style="margin-top:20px">
+          <label>Observaciones generales</label>
+          <textarea data-field="observaciones" placeholder="Información relevante no cubierta en otros campos"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FOOTER NAV ============ -->
+    <div class="section-nav">
+      <button class="btn btn-ghost" id="btn-prev">← Anterior</button>
+      <button class="btn btn-primary" id="btn-next">Siguiente →</button>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ============ STATE ============
+const STEPS = [
+  { id: 'id',  num: '00', label: 'Identificación', title: 'Identificación <em>general</em>', eyebrow: 'Paso inicial', desc: 'Datos básicos que identifican la investigación dentro del sistema GEDII.' },
+  { id: '0',   num: '01', label: 'Necesidades',   title: 'Paso 0 · <em>Necesidades</em>', eyebrow: 'Punto de partida', desc: 'Identificación de la tensión o vacío que motiva la investigación.' },
+  { id: '1',   num: '02', label: 'Horizonte PNC', title: 'Paso 1 · <em>Horizonte PNC</em>', eyebrow: 'Marco estratégico', desc: 'Alineación con el Plan Nacional de Cultura 2024–2038.' },
+  { id: '2',   num: '03', label: 'Formulación',   title: 'Paso 2 · <em>Formulación</em>', eyebrow: 'Diseño técnico', desc: 'Pregunta, objetivos y categorías de la investigación.' },
+  { id: '3',   num: '04', label: 'Posicionamiento', title: 'Paso 3 · <em>Posicionamiento</em>', eyebrow: 'Estrategia', desc: 'Impacto, TRIAGE y vinculación de actores.' },
+  { id: '4',   num: '05', label: 'Campo',         title: 'Paso 4 · <em>Campo</em>', eyebrow: 'Delimitación temática', desc: 'Campo de investigación según tipología GEDII.' },
+  { id: '5',   num: '06', label: 'Metodología',   title: 'Paso 5 · <em>Metodología</em>', eyebrow: 'Diseño', desc: 'Enfoque, sombrilla metodológica y ética.' },
+  { id: '6',   num: '07', label: 'Planeación',    title: 'Paso 6 · <em>Planeación</em>', eyebrow: 'Organización', desc: 'Planes de recolección, análisis, archivo y divulgación.' },
+  { id: '7',   num: '08', label: 'Producto',      title: 'Paso 7 · <em>Producto</em>', eyebrow: 'Entregable', desc: 'Tipo y características del producto esperado.' },
+  { id: '8',   num: '09', label: 'Ejecución',     title: 'Paso 8 · <em>Ejecución</em>', eyebrow: 'Proceso', desc: 'Estado, ajustes y evidencias de campo.' },
+  { id: '9',   num: '10', label: 'Evaluación',    title: 'Paso 9 · <em>Evaluación</em>', eyebrow: 'Balance', desc: 'Evaluación del proceso investigativo.' },
+  { id: '10',  num: '11', label: 'Proyección',    title: 'Paso 10 · <em>Proyección</em>', eyebrow: 'Cierre', desc: 'Nuevas líneas, DCA y paquete de transferencia.' }
+];
+
+const SOMBRILLAS = {
+  C1: ['Investigación Basada en la Práctica / Investigación + Creación', 'Fenomenología y Estudios de la Experiencia Estética', 'Hermenéutica y Estudios de Autor, Obra y Trayectoria'],
+  C2: ['Investigación-Acción Participativa (IAP)', 'Investigación + Creación (I+C)', 'Pedagogías Culturales y Educación Popular'],
+  C3: ['Arqueología de la Memoria y Estudios del Archivo', 'Epistemologías del Sur, Decoloniales e Interculturales', 'Crítica Cultural y Estudios de Identidad'],
+  C4: ['Analítica de Datos y Minería', 'Cartografía Social y SIG', 'Ciencia Ciudadana'],
+  C5: ['Caracterización y segmentación de públicos', 'Estudios de experiencia y apropiación cultural', 'Análisis de redes, vínculos y ecosistemas relacionales'],
+  C6: ['Diseño Especulativo y de Futuros', 'Análisis de Políticas Públicas', 'Gobierno Abierto']
+};
+
+const EVAL_DIMS = [
+  { key: 'obj',    label: 'Cumplimiento de objetivos', hint: '¿Se respondió la pregunta y se alcanzaron los objetivos?' },
+  { key: 'metod',  label: 'Calidad metodológica',      hint: '¿Los instrumentos fueron adecuados y se aplicó el protocolo ético?' },
+  { key: 'impac',  label: 'Nivel de impacto',          hint: '¿Se logró la dimensión declarada? ¿Hubo impactos emergentes?' },
+  { key: 'vinc',   label: 'Nivel de vinculación',      hint: '¿La participación fue real, no solo declarativa?' },
+  { key: 'divulg', label: 'Divulgación y devolución',  hint: '¿Los resultados llegaron a los agentes?' },
+  { key: 'tiempo', label: 'Tiempo y recursos',         hint: '¿Se cumplió el cronograma y se usaron eficientemente los recursos?' }
+];
+
+let state = { currentStep: 'id', fields: {}, keywords: [], ratings: {} };
+
+// ============ INIT ============
+function init() {
+  renderStepsNav();
+  renderRatings();
+  setupListeners();
+  loadState();
+  updateUI();
+  showSection('id');
+}
+
+function renderStepsNav() {
+  const nav = document.getElementById('steps-nav');
+  nav.innerHTML = STEPS.map(s => `
+    <button class="step-item" data-step="${s.id}">
+      <span class="step-num">${s.num}</span>
+      <span class="step-label">${s.label}</span>
+      <span class="step-dot"></span>
+    </button>
+  `).join('');
+  nav.querySelectorAll('.step-item').forEach(b => {
+    b.addEventListener('click', () => showSection(b.dataset.step));
+  });
+}
+
+function renderRatings() {
+  const container = document.getElementById('rating-container');
+  container.innerHTML = EVAL_DIMS.map(d => `
+    <div class="rating-row">
+      <div>
+        <div class="rating-row-label">${d.label}</div>
+        <span class="rating-row-hint">${d.hint}</span>
+      </div>
+      <div class="rating-stars" data-key="${d.key}">
+        ${[1,2,3,4,5].map(n => `<button type="button" class="rating-star" data-val="${n}">${n}</button>`).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.rating-star').forEach(s => {
+    s.addEventListener('click', () => {
+      const row = s.closest('.rating-stars');
+      const key = row.dataset.key;
+      const val = parseInt(s.dataset.val);
+      state.ratings[key] = val;
+      row.querySelectorAll('.rating-star').forEach((b, i) => {
+        b.classList.toggle('selected', (i+1) === val);
+      });
+      persist();
+      updateUI();
+    });
+  });
+}
+
+function setupListeners() {
+  // All inputs
+  document.querySelectorAll('[data-field]').forEach(el => {
+    el.addEventListener('input', e => {
+      state.fields[el.dataset.field] = el.value;
+      persist();
+      updateUI();
+    });
+  });
+
+  // Checkboxes / radios
+  document.querySelectorAll('input[type=checkbox], input[type=radio]').forEach(el => {
+    el.addEventListener('change', () => {
+      if (!el.name) return;
+      const all = document.querySelectorAll(`input[name="${el.name}"]`);
+      if (el.type === 'radio') {
+        state.fields[el.name] = el.value;
+      } else {
+        state.fields[el.name] = [...all].filter(x => x.checked).map(x => x.value);
+      }
+      persist();
+      updateUI();
+    });
+  });
+
+  // Chips
+  const chipsWrap = document.getElementById('chips-keywords');
+  const chipInput = chipsWrap.querySelector('input');
+  chipInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && chipInput.value.trim()) {
+      e.preventDefault();
+      const v = chipInput.value.trim();
+      if (!state.keywords.includes(v) && state.keywords.length < 6) {
+        state.keywords.push(v);
+        renderChips();
+        persist();
+        updateUI();
+      }
+      chipInput.value = '';
+    } else if (e.key === 'Backspace' && !chipInput.value && state.keywords.length) {
+      state.keywords.pop();
+      renderChips();
+      persist();
+      updateUI();
+    }
+  });
+
+  // Nav buttons
+  document.getElementById('btn-prev').addEventListener('click', () => {
+    const i = STEPS.findIndex(s => s.id === state.currentStep);
+    if (i > 0) showSection(STEPS[i-1].id);
+  });
+  document.getElementById('btn-next').addEventListener('click', () => {
+    const i = STEPS.findIndex(s => s.id === state.currentStep);
+    if (i < STEPS.length - 1) showSection(STEPS[i+1].id);
+    else exportPDF();
+  });
+}
+
+function renderChips() {
+  const wrap = document.getElementById('chips-keywords');
+  const input = wrap.querySelector('input');
+  wrap.innerHTML = state.keywords.map((k, i) => `
+    <span class="chip">${k} <button data-i="${i}">×</button></span>
+  `).join('') + input.outerHTML;
+  wrap.querySelectorAll('button[data-i]').forEach(b => {
+    b.addEventListener('click', () => {
+      state.keywords.splice(parseInt(b.dataset.i), 1);
+      renderChips();
+      persist();
+      updateUI();
+    });
+  });
+  // rebind input
+  const newInput = wrap.querySelector('input');
+  newInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && newInput.value.trim()) {
+      e.preventDefault();
+      const v = newInput.value.trim();
+      if (!state.keywords.includes(v) && state.keywords.length < 6) {
+        state.keywords.push(v);
+        renderChips();
+        persist();
+        updateUI();
+      }
+      newInput.value = '';
+    }
+  });
+  newInput.focus();
+}
+
+function showSection(id) {
+  state.currentStep = id;
+  document.querySelectorAll('.section').forEach(s => s.classList.toggle('active', s.dataset.step === id));
+  document.querySelectorAll('.step-item').forEach(b => b.classList.toggle('active', b.dataset.step === id));
+
+  const step = STEPS.find(s => s.id === id);
+  document.getElementById('page-title').innerHTML = step.title;
+  document.getElementById('page-eyebrow').textContent = step.eyebrow;
+  document.getElementById('page-desc').textContent = step.desc;
+
+  // Nav buttons
+  const idx = STEPS.findIndex(s => s.id === id);
+  document.getElementById('btn-prev').disabled = idx === 0;
+  document.getElementById('btn-prev').style.opacity = idx === 0 ? '.4' : '1';
+  const nextBtn = document.getElementById('btn-next');
+  if (idx === STEPS.length - 1) {
+    nextBtn.textContent = '↓ Exportar infografía PDF';
+    nextBtn.className = 'btn btn-accent';
+  } else {
+    nextBtn.innerHTML = 'Siguiente →';
+    nextBtn.className = 'btn btn-primary';
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  updateSombrillaOptions();
+}
+
+function updateSombrillaOptions() {
+  const campo = state.fields.campo;
+  const sel = document.getElementById('sombrilla-select');
+  if (!sel) return;
+  const prev = state.fields.sombrilla || '';
+  if (campo && SOMBRILLAS[campo]) {
+    sel.innerHTML = `<option value="">— Seleccione una metodología —</option>` +
+      SOMBRILLAS[campo].map(s => `<option value="${s}" ${prev === s ? 'selected' : ''}>${s}</option>`).join('');
+    sel.disabled = false;
+  } else {
+    sel.innerHTML = `<option value="">Primero seleccione un campo en el Paso 4…</option>`;
+    sel.disabled = true;
+  }
+}
+
+// ============ UI UPDATES ============
+function updateUI() {
+  // Meta en sidebar
+  document.getElementById('meta-title').textContent = state.fields.titulo || 'Nueva investigación';
+  document.getElementById('meta-dep').textContent = state.fields.dependencia
+    ? `${state.fields.dependencia}${state.fields.vigencia ? ' · ' + state.fields.vigencia : ''}`
+    : '— Dependencia sin asignar —';
+  document.getElementById('meta-code').textContent = state.fields.codigo || '—';
+
+  // Innovador badge
+  const dim = state.fields.dimension || [];
+  const isInnov = Array.isArray(dim) && (dim.includes('TRANSV') || dim.includes('D3') || dim.includes('D4'));
+  document.getElementById('innov-badge').classList.toggle('active', isInnov);
+
+  // Horizonte "otro" field
+  const hor = state.fields.horizonte || [];
+  const showOtro = Array.isArray(hor) && hor.includes('otro');
+  document.getElementById('horizonte-otro-wrap').style.display = showOtro ? 'block' : 'none';
+
+  // Sombrilla options
+  updateSombrillaOptions();
+
+  // Progress per step + global
+  let totalFilled = 0;
+  let totalFields = 0;
+  STEPS.forEach(s => {
+    const p = stepProgress(s.id);
+    const btn = document.querySelector(`.step-item[data-step="${s.id}"]`);
+    btn.classList.toggle('has-content', p.filled > 0 && p.filled < p.total);
+    btn.classList.toggle('complete', p.filled === p.total && p.total > 0);
+    totalFilled += p.filled;
+    totalFields += p.total;
+  });
+  const pct = totalFields ? Math.round(100 * totalFilled / totalFields) : 0;
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  // Save indicator
+  const now = new Date();
+  document.getElementById('save-status').textContent = `Guardado · ${now.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'})}`;
+}
+
+function stepProgress(stepId) {
+  // Conta campos relevantes por paso
+  const g = (f) => {
+    const v = state.fields[f];
+    if (Array.isArray(v)) return v.length > 0;
+    return v !== undefined && v !== '' && v !== null;
+  };
+  const countTrue = (...arr) => arr.filter(Boolean).length;
+
+  const map = {
+    'id':  { total: 4, filled: countTrue(g('dependencia'), g('vigencia'), g('titulo'), g('responsable')) },
+    '0':   { total: 2, filled: countTrue(g('necesidad'), g('fuente')) },
+    '1':   { total: 1, filled: countTrue(g('horizonte')) },
+    '2':   { total: 4, filled: countTrue(g('pregunta'), g('obj_general'), state.keywords.length >= 3, g('obj_esp_1')) },
+    '3':   { total: 4, filled: countTrue(g('dimension'), g('triage'), g('actores'), g('vinculacion')) },
+    '4':   { total: 1, filled: countTrue(g('campo')) },
+    '5':   { total: 3, filled: countTrue(g('enfoque'), g('sombrilla') || g('tecnicas'), g('etica')) },
+    '6':   { total: 3, filled: countTrue(g('plan_recol'), g('plan_analisis'), g('fecha_inicio')) },
+    '7':   { total: 2, filled: countTrue(g('producto'), g('producto_desc')) },
+    '8':   { total: 2, filled: countTrue(g('estado'), g('evidencias')) },
+    '9':   { total: 2, filled: countTrue(Object.keys(state.ratings).length >= 3, g('continuidad')) },
+    '10':  { total: 2, filled: countTrue(g('nuevas_preguntas'), g('dca')) }
+  };
+  return map[stepId] || { total: 1, filled: 0 };
+}
+
+// ============ PERSIST ============
+function persist() {
+  try {
+    const snap = { state };
+    // Usamos variable global en vez de localStorage por compatibilidad artefact
+    window._gedii = snap;
+  } catch(e){}
+}
+function loadState() {
+  if (window._gedii && window._gedii.state) {
+    state = window._gedii.state;
+    // Rehidratar inputs
+    Object.keys(state.fields).forEach(k => {
+      const el = document.querySelector(`[data-field="${k}"]`);
+      if (el) el.value = state.fields[k];
+      const radios = document.querySelectorAll(`input[name="${k}"]`);
+      radios.forEach(r => {
+        if (r.type === 'radio') r.checked = (r.value === state.fields[k]);
+        if (r.type === 'checkbox' && Array.isArray(state.fields[k])) r.checked = state.fields[k].includes(r.value);
+      });
+    });
+    renderChips();
+    Object.keys(state.ratings).forEach(k => {
+      const row = document.querySelector(`.rating-stars[data-key="${k}"]`);
+      if (row) row.querySelectorAll('.rating-star').forEach((b, i) => b.classList.toggle('selected', (i+1) === state.ratings[k]));
+    });
+  }
+}
+
+// ============ EXPORT STUB ============
+function exportPDF() {
+  const title = state.fields.titulo || 'Investigación sin título';
+  const dep = state.fields.dependencia || 'Dependencia';
+  alert(`📄 Export a PDF Infografía\n\nEn la versión final, se generará una infografía PDF con:\n\n• Portada con título, dependencia, código\n• Badge "Proyecto Innovador" (si aplica)\n• Ficha resumen con pregunta + objetivos\n• Visualización del TRIAGE\n• Timeline (fecha inicio → cierre)\n• Radar chart de evaluación (Paso 9)\n• Tags de campo, sombrilla, ética\n• QR de verificación\n\nInvestigación: ${title}\nDependencia: ${dep}\n\n— Prototipo: siguiente paso en Claude Code —`);
+}
+
+init();
+</script>
+
+</body>
+</html>

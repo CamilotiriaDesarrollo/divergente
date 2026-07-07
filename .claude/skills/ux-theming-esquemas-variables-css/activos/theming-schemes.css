@@ -1,0 +1,76 @@
+/* ─────────────────────────────────────────────────────────────
+   THEMING POR ESQUEMAS — variables CSS + clase en <body>
+   Extracto REAL de DivergenteWEB/app/globals.css (Tailwind v4).
+   NO existe tailwind.config.ts: los tokens de marca viven aquí.
+   ───────────────────────────────────────────────────────────── */
+
+@import "tailwindcss";
+
+/* 1) Tokens de marca expuestos a Tailwind v4 (reemplaza al config file).
+      Genera utilidades bg-bg / text-fg / text-mint sin JS. */
+@theme inline {
+  --color-bg: #1a1b2e;
+  --color-fg: #f5f5f0;
+  --color-mint: #91fee6;
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-eastman), var(--font-montserrat), sans-serif;
+}
+
+/* 2) Fallbacks a nivel documento (por si el body aún no pinta) */
+html,
+body {
+  background: var(--bg, #1a1b2e);
+  color: var(--fg, #f5f5f0);
+}
+
+/* 3) ESQUEMA BASE — las variables mutables viven en el body.
+      Todo componente lee var(--bg/--fg/--mint/...), nunca un hex fijo. */
+body {
+  --bg: #1a1b2e;
+  --fg: #f5f5f0;
+  --mint: #91fee6;
+  --nav-hover: #91fee6;
+  --copy: #9ca3af;
+}
+
+/* 4) TRANSICIÓN en los CONSUMIDORES (no en el body).
+      Cada elemento que lee un token anima SOLO la propiedad que cambia,
+      con 0.35s ease → el cambio de esquema se percibe suave y barato. */
+.wordmark   { color: var(--mint); transition: color 0.35s ease; }
+.page-title { color: var(--mint); transition: color 0.35s ease; }
+.hero-copy  { color: var(--copy); transition: color 0.35s ease; }
+.bg-layer   { background: var(--bg); transition: background 0.35s ease; }
+.bg-layer::after { background-color: var(--mint); transition: background-color 0.35s ease; }
+
+/* 5) ESQUEMAS POR SECCIÓN — una clase en el body redefine el bloque
+      completo de tokens. El nombre de la clase = la ruta/sección.
+      Los overrides sueltos (.nav-link, .circle-link) son para elementos
+      cuyo color no deriva 1:1 de un token. */
+body.hover-analitica {
+  --bg: #f6f3ff;  --fg: #a99bcf;  --mint: #e6a7ff;  --nav-hover: #e6a7ff;  --copy: #a99bcf;
+}
+body.hover-analitica .nav-link   { color: #a99bcf; }
+body.hover-analitica .circle-link { color: #e6a7ff; }
+
+body.hover-metodologias {
+  --bg: #fff1b8;  --fg: #7cc9a7;  --mint: #005f46;  --nav-hover: #005f46;  --copy: #7cc9a7;
+}
+body.hover-metodologias .nav-link   { color: #7cc9a7; }
+body.hover-metodologias .circle-link { color: #005f46; }
+
+body.hover-creatividad {
+  --bg: #1e2030;  --fg: #ffb26b;  --mint: #ff6a00;  --nav-hover: #ff6a00;  --copy: #ffb26b;
+}
+body.hover-creatividad .nav-link   { color: #ffb26b; }
+body.hover-creatividad .circle-link { color: #ff6a00; }
+
+body.hover-portafolio {
+  --bg: #f2f4f8;  --fg: #6c7cff;  --mint: #1f3bff;  --nav-hover: #1f3bff;  --copy: #6c7cff;
+}
+
+body.hover-blog {
+  --bg: #f2f4f8;  --fg: #e63946;  --mint: #b91d2c;  --nav-hover: #b91d2c;  --copy: #e63946;
+}
+
+/* Nota: color-mix(in srgb, var(--bg) 95%, transparent) permite derivar
+   overlays/estados desde el token vivo sin definir otra variable. */

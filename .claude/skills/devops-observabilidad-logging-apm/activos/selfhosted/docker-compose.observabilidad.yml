@@ -1,0 +1,47 @@
+# activos/selfhosted/docker-compose.observabilidad.yml
+# Stack de observabilidad AUTOALOJADO para la LÍNEA GOBIERNO cuando los datos deben quedarse
+# on-prem (residencia de datos DI-GSI-010) y NO se puede usar Application Insights en la nube.
+# Grafana (dashboards/alertas) + Loki (logs) + Tempo (trazas) + Prometheus (métricas) + OTel Collector.
+#
+# N0 (sin verificar aún en proyecto propio): confirma los tags de imagen antes de fijarlos; en gobierno,
+# fija por digest (sha256) y usa el registry interno si el acceso a Docker Hub está restringido.
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest   # FIJAR versión/digest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+    depends_on: [loki, tempo, prometheus]
+
+  loki:
+    image: grafana/loki:latest                            # FIJAR versión/digest
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    ports: ["3100:3100"]
+
+  tempo:
+    image: grafana/tempo:latest                           # FIJAR versión/digest
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml:ro
+    ports: ["3200:3200"]
+
+  prometheus:
+    image: prom/prometheus:latest                         # FIJAR versión/digest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports: ["9090:9090"]
+
+  grafana:
+    image: grafana/grafana:latest                         # FIJAR versión/digest
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}   # inyectar por env/secret, nunca hardcodear
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports: ["3000:3000"]
+    depends_on: [loki, tempo, prometheus]
+
+# Los ficheros de config de cada componente (local-config.yaml de Loki, tempo.yaml, prometheus.yml)
+# NO se incluyen aquí: añádelos según la documentación vigente de cada proyecto. Este compose es el
+# punto de partida del stack; el colector (otel-collector-config.yaml) sí va en esta misma carpeta.

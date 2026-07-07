@@ -462,7 +462,7 @@ export default function Analitica() {
         >
           {/* Línea 1 — en flujo, define la altura del h1 */}
           <span className="hero-line hero-line-g1" style={{ display: "block", fontSize: "clamp(2.2rem, 10vw, 15rem)", lineHeight: 1.05, color: "#9488b8" }}>
-            {["Los", "datos", "no", "deciden"].map((word, wi, arr) => (
+            {["La", "Tecnología", "no", "decide"].map((word, wi, arr) => (
               <span key={wi} className="hero-word" style={{ whiteSpace: "nowrap", display: "inline" }}>
                 {wi === 2 ? (
                   <span style={{ display: "inline-block", position: "relative" }}>
@@ -590,10 +590,10 @@ export default function Analitica() {
                 content: (
                   <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: isMobile ? "auto" : "100%", gap: "2rem" }}>
                     <p style={{ margin: "20px 0 0", fontFamily: "monospace", fontSize: "18px", color: "#9333EA", lineHeight: 1.5, textAlign: "center" }}>
-                      Las decisiones que de verdad mueven una organización no las reemplaza ningún sistema
+                      Las decisiones que de verdad mueven una organización no las reemplaza ninguna tecnología
                     </p>
                     <p style={{ margin: 0, fontFamily: "monospace", fontSize: "18px", color: "#9333EA", lineHeight: 1.5, textAlign: "center" }}>
-                      La capacidad humana de <strong>empatizar, de dar sentido y conectar, SÍ.</strong>
+                      La capacidad humana de <strong>empatizar, crear, dar sentido y conectar, SÍ.</strong>
                     </p>
                   </div>
                 ),
@@ -607,7 +607,7 @@ export default function Analitica() {
                       Desde ahí trabajamos.
                     </p>
                     <p style={{ margin: 0, fontFamily: "monospace", fontSize: "18px", color: "var(--copy)", textAlign: "center", lineHeight: 1.6 }}>
-                      No desde el <strong>dato crudo,</strong> sino desde la <strong>observación profunda.</strong><br/><br/><strong>Conectando lo racional con lo creativo, lo medible con lo humano.</strong>
+                      No desde la <strong>herramienta sin propósito,</strong> sino desde el <strong>pensamiento crítico, analítico y creativo.</strong>
                     </p>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                       <p style={{ margin: 0, fontFamily: "monospace", fontSize: "18px", color: "var(--copy)", textAlign: "center", lineHeight: 1.5 }}>
@@ -1054,9 +1054,9 @@ export default function Analitica() {
                 label: "Inteligencia artificial aplicada",
                 paragraph: "La IA es una herramienta, no un fin.\n\nEn Divergente la usamos para liberar la capacidad humana en lo importante: pensar, decidir, crear, sentir.\n\nNo vendemos IA por moda ni por reemplazar personas. La integramos con criterio, con propósito y con una mirada **Divergente** que combina lo técnico con lo humano, lo automatizado con lo consciente. Porque incluso la tecnología más avanzada necesita una pregunta humana detrás para tener sentido.",
                 items: [
-                  { name: "Soluciones basadas en IA", image: "/svc/Soluciones IA.png", paragraph: "Diseñamos e implementamos soluciones de inteligencia artificial específicas para tu organización. Desde automatización de procesos hasta agentes y asistentes.\n\nCada solución parte de una **pregunta concreta de tu negocio** y se construye para que la tecnología sea un apoyo real, no una capa adicional de complejidad." },
+                  { name: "Automatizaciones y soluciones IA", image: "/svc/Soluciones IA.png", paragraph: "Diseñamos e implementamos soluciones de inteligencia artificial específicas para tu organización. Desde automatización de procesos hasta agentes y asistentes.\n\nCada solución parte de una **pregunta concreta de tu negocio** y se construye para que la tecnología sea un apoyo real, no una capa adicional de complejidad." },
                   { name: "Analítica de datos con IA", image: "/svc/Analitica IA.png", paragraph: "Usamos IA para procesar volúmenes de datos que ningún equipo humano podría abordar solo, pero la interpretación final **siempre es humana**.\n\nLa IA encuentra los patrones; nosotros, con metodologías propias de lecturas **Divergentes**, les damos sentido.\n\nPorque los datos no deciden. **Las personas sí.**" },
-                  { name: "Adopción de IA", image: "/svc/Adopcion de IA.png", paragraph: "Acompañamos a organizaciones a entender qué IA necesitan, cuál no, y cómo adoptarla sin perder la **esencia humana** de su trabajo.\n\nDiagnosticamos procesos, formamos equipos y diseñamos rutas de implementación realistas.\n\nLa IA bien adoptada **potencia a las personas**; mal adoptada, las desplaza. Nosotros trabajamos para lo primero." },
+                  { name: "IA para empresas", image: "/svc/Adopcion de IA.png", paragraph: "Acompañamos a organizaciones a entender qué IA necesitan, cuál no, y cómo adoptarla sin perder la **esencia humana** de su trabajo.\n\nDiagnosticamos procesos, formamos equipos y diseñamos rutas de implementación realistas.\n\nLa IA bien adoptada **potencia a las personas**; mal adoptada, las desplaza. Nosotros trabajamos para lo primero." },
                 ],
               },
             ] as { num: string; label: string; bgImage?: string; paragraph?: string; items: { name: string; desc?: string; paragraph?: string; image?: string }[] }[]).map((card, i) => (
@@ -1147,18 +1147,13 @@ export default function Analitica() {
 
       {/* ── Por Qué Divergente ── */}
       <section className="py-28" style={{ background: "#f0ecff", position: "relative", overflow: "hidden" }}>
-        {/* imagen con colores naturales — anclada al fondo para mostrar la mujer con el canasto */}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "url('/svc/tecnologia%20con%20proposito.png')", backgroundSize: "cover", backgroundPosition: "68% bottom", opacity: 0.58, filter: "brightness(1.06) saturate(1.15)", zIndex: 0, pointerEvents: "none" }} />
-        {/* velo en el lado del texto */}
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(95deg, rgba(240,236,255,0.9) 0%, rgba(240,236,255,0.6) 45%, rgba(240,236,255,0.08) 100%)", zIndex: 0, pointerEvents: "none" }} />
+        {/* hombre meditando — fondo tenue, el negro se disuelve con mixBlendMode screen */}
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "url('/insight.png')", backgroundSize: "contain", backgroundPosition: "center", backgroundRepeat: "no-repeat", opacity: 0.8, mixBlendMode: "screen", filter: "sepia(0.3) hue-rotate(230deg) saturate(1.4)", zIndex: 0, pointerEvents: "none" }} />
         <div className="section-wrap" style={{ position: "relative", zIndex: 1 }}>
-          <span className="section-label" style={{ color: "#9333ea" }}>Por qué Divergente</span>
-          <h2 className="section-heading">Tecnología con propósito humano.</h2>
-          <div className="body-copy" style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: "44rem", color: "#2a1250" }}>
-            <p>Construimos apps, plataformas web, soluciones digitales e inteligencia artificial para que las personas hagan lo que solo las personas pueden hacer:</p>
-            <p><strong>Pensar, Decidir, Crear, Sentir.</strong></p>
-            <p>Automatizamos lo repetitivo, integramos lo complejo y diseñamos arquitecturas que liberan tiempo, energía y atención para que tu equipo se dedique a lo importante.</p>
-            <p className="italic" style={{ color: "#4a2d72" }}>La tecnología no está aquí para reemplazarnos. Está aquí para devolvernos a lo humano.</p>
+          <h2 className="section-heading" style={{ textAlign: "center" }}>Tecnología y Creatividad con Propósito</h2>
+          <div className="body-copy" style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: "44rem", margin: "0 auto", textAlign: "center", color: "#2a1250" }}>
+            <p style={{ fontSize: "clamp(1.1rem, 1.3vw, 1.4rem)" }}>Automatizamos lo repetitivo, integramos lo complejo y diseñamos arquitecturas que liberan tiempo, energía y atención para que tu equipo se dedique a lo importante.</p>
+            <p className="italic" style={{ color: "#4a2d72", fontSize: "clamp(1.1rem, 1.3vw, 1.4rem)" }}>La tecnología no está aquí para reemplazarnos. Está aquí para devolvernos a lo humano.</p>
           </div>
         </div>
       </section>
@@ -1168,7 +1163,11 @@ export default function Analitica() {
 
         {/* Trabajemos juntos */}
         <a href="https://wa.me/573144869162" target="_blank" rel="noopener noreferrer" aria-label="Trabajemos juntos por WhatsApp"
-          style={{ fontFamily: "var(--font-montserrat)", fontSize: "clamp(0.95rem, 1.4vw, 1.3rem)", color: "#b09fd8", letterSpacing: "0.08em", textDecoration: "none", textTransform: "uppercase", fontWeight: 600, display: "flex", alignItems: "center", gap: "0.45rem", position: "relative", zIndex: 1 }}>
+          style={{ fontFamily: "var(--font-montserrat)", fontSize: "clamp(0.95rem, 1.4vw, 1.3rem)", color: "#b09fd8", letterSpacing: "0.08em", textDecoration: "none", textTransform: "uppercase", fontWeight: 600, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.6rem", position: "relative", zIndex: 1 }}>
+          <span className="circle-link" data-brand="whatsapp" aria-hidden="true" style={{ width: "clamp(32px, 2.6vw, 62px)", height: "clamp(32px, 2.6vw, 62px)" }}>
+            <svg className="icon-default" viewBox="0 0 24 24" aria-hidden="true" style={{ width: "clamp(28px, 2.25vw, 54px)", height: "clamp(28px, 2.25vw, 54px)" }}><path d="M19.05 4.91A9.82 9.82 0 0 0 12 2C6.48 2 2 6.48 2 12c0 1.65.41 3.27 1.18 4.71L2.05 22l5.43-1.43A9.95 9.95 0 0 0 12 22c5.52 0 10-4.48 10-10 0-2.66-1.05-5.18-2.95-7.09z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><path d="M16.83 14.42c-.27-.13-1.6-.79-1.85-.88-.25-.09-.43-.13-.61.13-.18.27-.7.88-.86 1.06-.16.18-.31.2-.58.07-.27-.13-1.14-.42-2.18-1.34-.81-.72-1.35-1.6-1.51-1.87-.16-.27-.02-.42.12-.55.12-.12.27-.31.4-.47.13-.16.18-.27.27-.45.09-.18.04-.34-.02-.47-.07-.13-.61-1.46-.83-2-.22-.53-.45-.45-.61-.46-.16-.01-.34-.01-.52-.01-.18 0-.47.07-.72.34-.25.27-.95.93-.95 2.27 0 1.34.97 2.63 1.11 2.81.13.18 1.91 2.92 4.63 4.09.65.28 1.15.45 1.55.58.65.21 1.24.18 1.7.11.52-.08 1.6-.65 1.83-1.28.22-.63.22-1.17.16-1.28-.07-.11-.25-.18-.52-.31z" fill="currentColor" /></svg>
+            <svg className="icon-hover" viewBox="0 0 24 24" aria-hidden="true" style={{ width: "clamp(28px, 2.25vw, 54px)", height: "clamp(28px, 2.25vw, 54px)" }}><path d="M19.05 4.91A9.82 9.82 0 0 0 12 2C6.48 2 2 6.48 2 12c0 1.65.41 3.27 1.18 4.71L2.05 22l5.43-1.43A9.95 9.95 0 0 0 12 22c5.52 0 10-4.48 10-10 0-2.66-1.05-5.18-2.95-7.09z" fill="none" stroke="#25D366" strokeWidth="1.4" strokeLinejoin="round" /><path d="M16.83 14.42c-.27-.13-1.6-.79-1.85-.88-.25-.09-.43-.13-.61.13-.18.27-.7.88-.86 1.06-.16.18-.31.2-.58.07-.27-.13-1.14-.42-2.18-1.34-.81-.72-1.35-1.6-1.51-1.87-.16-.27-.02-.42.12-.55.12-.12.27-.31.4-.47.13-.16.18-.27.27-.45.09-.18.04-.34-.02-.47-.07-.13-.61-1.46-.83-2-.22-.53-.45-.45-.61-.46-.16-.01-.34-.01-.52-.01-.18 0-.47.07-.72.34-.25.27-.95.93-.95 2.27 0 1.34.97 2.63 1.11 2.81.13.18 1.91 2.92 4.63 4.09.65.28 1.15.45 1.55.58.65.21 1.24.18 1.7.11.52-.08 1.6-.65 1.83-1.28.22-.63.22-1.17.16-1.28-.07-.11-.25-.18-.52-.31z" fill="#25D366" /></svg>
+          </span>
           Trabajemos juntos
         </a>
 
@@ -1185,10 +1184,6 @@ export default function Analitica() {
           <a className="circle-link" data-brand="linkedin" href="https://www.linkedin.com/in/camilo-tiria/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
             <svg className="icon-default" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.4 20.4h-3.4v-5.3c0-1.3 0-2.9-1.8-2.9s-2 1.4-2 2.8v5.4H9.8V9h3.3v1.6h.1c.5-.9 1.6-1.8 3.3-1.8 3.5 0 4.1 2.3 4.1 5.3v6.3zM5.3 7.4a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm1.7 13H3.6V9h3.4v11.4zM22.2 0H1.8C.8 0 0 .8 0 1.7v20.6C0 23.2.8 24 1.8 24h20.4c1 0 1.8-.8 1.8-1.7V1.7C24 .8 23.2 0 22.2 0z" /></svg>
             <svg className="icon-hover" viewBox="0 0 24 24" aria-hidden="true"><rect x="0" y="0" width="24" height="24" rx="4" fill="#0A66C2" /><path d="M20.4 20.4h-3.4v-5.3c0-1.3 0-2.9-1.8-2.9s-2 1.4-2 2.8v5.4H9.8V9h3.3v1.6h.1c.5-.9 1.6-1.8 3.3-1.8 3.5 0 4.1 2.3 4.1 5.3v6.3zM5.3 7.4a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm1.7 13H3.6V9h3.4v11.4z" fill="#FFFFFF" /></svg>
-          </a>
-          <a className="circle-link" data-brand="whatsapp" href="https://wa.me/573144869162" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
-            <svg className="icon-default" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.05 4.91A9.82 9.82 0 0 0 12 2C6.48 2 2 6.48 2 12c0 1.65.41 3.27 1.18 4.71L2.05 22l5.43-1.43A9.95 9.95 0 0 0 12 22c5.52 0 10-4.48 10-10 0-2.66-1.05-5.18-2.95-7.09z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><path d="M16.83 14.42c-.27-.13-1.6-.79-1.85-.88-.25-.09-.43-.13-.61.13-.18.27-.7.88-.86 1.06-.16.18-.31.2-.58.07-.27-.13-1.14-.42-2.18-1.34-.81-.72-1.35-1.6-1.51-1.87-.16-.27-.02-.42.12-.55.12-.12.27-.31.4-.47.13-.16.18-.27.27-.45.09-.18.04-.34-.02-.47-.07-.13-.61-1.46-.83-2-.22-.53-.45-.45-.61-.46-.16-.01-.34-.01-.52-.01-.18 0-.47.07-.72.34-.25.27-.95.93-.95 2.27 0 1.34.97 2.63 1.11 2.81.13.18 1.91 2.92 4.63 4.09.65.28 1.15.45 1.55.58.65.21 1.24.18 1.7.11.52-.08 1.6-.65 1.83-1.28.22-.63.22-1.17.16-1.28-.07-.11-.25-.18-.52-.31z" fill="currentColor" /></svg>
-            <svg className="icon-hover" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.05 4.91A9.82 9.82 0 0 0 12 2C6.48 2 2 6.48 2 12c0 1.65.41 3.27 1.18 4.71L2.05 22l5.43-1.43A9.95 9.95 0 0 0 12 22c5.52 0 10-4.48 10-10 0-2.66-1.05-5.18-2.95-7.09z" fill="none" stroke="#25D366" strokeWidth="1.4" strokeLinejoin="round" /><path d="M16.83 14.42c-.27-.13-1.6-.79-1.85-.88-.25-.09-.43-.13-.61.13-.18.27-.7.88-.86 1.06-.16.18-.31.2-.58.07-.27-.13-1.14-.42-2.18-1.34-.81-.72-1.35-1.6-1.51-1.87-.16-.27-.02-.42.12-.55.12-.12.27-.31.4-.47.13-.16.18-.27.27-.45.09-.18.04-.34-.02-.47-.07-.13-.61-1.46-.83-2-.22-.53-.45-.45-.61-.46-.16-.01-.34-.01-.52-.01-.18 0-.47.07-.72.34-.25.27-.95.93-.95 2.27 0 1.34.97 2.63 1.11 2.81.13.18 1.91 2.92 4.63 4.09.65.28 1.15.45 1.55.58.65.21 1.24.18 1.7.11.52-.08 1.6-.65 1.83-1.28.22-.63.22-1.17.16-1.28-.07-.11-.25-.18-.52-.31z" fill="#25D366" /></svg>
           </a>
         </div>
 

@@ -1,0 +1,34 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "//": "Renovate es PORTABLE (GitHub y GitLab). En la línea de gobierno se corre como bot self-hosted contra el GitLab institucional. En la línea privada, alternativa nativa: activos/dependabot.yml.",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits"
+  ],
+  "timezone": "America/Bogota",
+  "schedule": ["before 6am on monday"],
+  "prConcurrentLimit": 5,
+  "labels": ["dependencias", "seguridad"],
+  "vulnerabilityAlerts": {
+    "labels": ["seguridad", "vulnerabilidad"],
+    "automerge": false
+  },
+  "packageRules": [
+    {
+      "description": "Automerge SOLO devDependencies patch/minor y SOLO hacia develop (nunca a producción)",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "matchBaseBranches": ["develop"],
+      "automerge": true
+    },
+    {
+      "description": "Linea GOBIERNO: rama main == produccion. NUNCA automerge; cada bump es un RFC ITIL (M-GSI-003) por el comite del jueves.",
+      "matchBaseBranches": ["main"],
+      "automerge": false,
+      "addLabels": ["requiere-rfc-itil"]
+    }
+  ],
+  "nuget": { "enabled": true },
+  "pip_requirements": { "enabled": true }
+}

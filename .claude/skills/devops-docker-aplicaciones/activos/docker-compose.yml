@@ -1,0 +1,49 @@
+# ---------------------------------------------------------------------------
+# Orquestacion local/integracion: API de aplicacion + SQL Server.
+# Extiende el uso de Docker que ya existe para SQL Server local (skill
+# devops-entorno-local-sqlserver-reproducible) a la APLICACION completa.
+# Uso:  cp .env.example .env  &&  docker compose up --build
+# Todas las claves llegan por .env (git-ignored). Nada de secretos aqui.
+# ---------------------------------------------------------------------------
+name: ${PROJECT_NAME:-app}-local
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    # En Apple Silicon/ARM esta imagen no corre: usa mcr.microsoft.com/azure-sql-edge
+    # (ver skill devops-entorno-local-sqlserver-reproducible).
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?define MSSQL_SA_PASSWORD en .env}
+      MSSQL_PID: Developer
+    ports:
+      - "14333:1433"        # host 14333 -> contenedor 1433 (puerto no estandar)
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      # mssql-tools18 -> requiere -C (confiar en cert autofirmado del contenedor)
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.node    # o Dockerfile.dotnet segun la linea del proyecto
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # La app se conecta al servicio 'db' por su nombre de red interno (db:1433),
+      # NO por el puerto host 14333. Cadena via variable, nunca hardcodeada.
+      DB_CONNECTION: ${DB_CONNECTION:?define DB_CONNECTION en .env}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy    # arranca la API solo cuando la BD responde
+    restart: unless-stopped
+
+volumes:
+  mssql-data:

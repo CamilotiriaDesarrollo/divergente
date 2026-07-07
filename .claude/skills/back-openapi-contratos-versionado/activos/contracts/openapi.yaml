@@ -1,0 +1,119 @@
+# Contrato OpenAPI 3.1 — plantilla base de la Fábrica.
+# Es la FUENTE DE VERDAD: frontend y backend se implementan CONTRA este archivo.
+# Sin secretos: usar placeholders ${VAR} en servers y en el authority OIDC.
+openapi: 3.1.0
+info:
+  title: API ${PROYECTO}
+  # SemVer del CONTRATO. Cambio incompatible -> sube MAYOR y nueva ruta /api/v{n}.
+  version: 1.0.0
+  description: |
+    Contrato formal de la API de ${PROYECTO}. Interfaz publicada por la capa
+    "Servicios Distribuidos" (M-GSI-002). Ver CHANGELOG-API.md para deprecaciones.
+  contact:
+    name: Fabrica de Software Divergente
+  license:
+    name: Propietaria
+servers:
+  - url: ${API_BASE_URL}/api/v1
+    description: Produccion (v1)
+  - url: http://localhost:3000/api/v1
+    description: Local (Express) / usar 5000 para .NET Kestrel
+tags:
+  - name: sistemas
+    description: Catalogo de sistemas
+paths:
+  /sistemas:
+    get:
+      operationId: listarSistemas
+      summary: Lista los sistemas del catalogo (paginado)
+      tags: [sistemas]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+      responses:
+        '200':
+          description: Pagina de sistemas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SistemaList' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '500': { $ref: '#/components/responses/Problem' }
+      security:
+        - oidc: []
+  /sistemas/{id}:
+    get:
+      operationId: obtenerSistema
+      summary: Obtiene un sistema por id
+      tags: [sistemas]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Un sistema
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Sistema' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+      security:
+        - oidc: []
+components:
+  securitySchemes:
+    # OIDC contra Azure AD / IdP institucional (ver skill seg-implementacion-sso-ldap-oidc
+    # y DI-GSI-010). El authority NO es secreto pero se parametriza por entorno.
+    oidc:
+      type: openIdConnect
+      openIdConnectUrl: ${OIDC_AUTHORITY}/.well-known/openid-configuration
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSizeParam:
+      name: pageSize
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+  schemas:
+    Sistema:
+      type: object
+      required: [id, nombre, categoria, activo]
+      properties:
+        id: { type: string, format: uuid }
+        nombre: { type: string, maxLength: 120 }
+        descripcion: { type: string }
+        url: { type: string, format: uri }
+        # OpenAPI 3.1: NO existe `nullable: true`; se declara la union con "null".
+        icono:
+          type: [string, "null"]
+        categoria: { type: string }
+        activo: { type: boolean }
+    SistemaList:
+      type: object
+      required: [data, page, pageSize, total]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Sistema' }
+        page: { type: integer }
+        pageSize: { type: integer }
+        total: { type: integer }
+    # Errores en formato Problem Details (RFC 9457, sucesor de 7807).
+    Problem:
+      type: object
+      required: [title, status]
+      properties:
+        type: { type: string, format: uri, default: about:blank }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+  responses:
+    Problem:
+      description: Error en formato Problem Details
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }

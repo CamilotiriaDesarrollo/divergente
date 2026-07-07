@@ -1,0 +1,27 @@
+# CODEOWNERS — enruta el revisor obligatorio del PR (Regla inviolable 1: revisor != constructor).
+# Copiar a la raíz del repo, a .github/ o a docs/. Los equipos/usuarios DEBEN existir en la plataforma.
+# Reemplaza ${ORG} por tu organización de GitHub/GitLab.
+
+# qa-ingeniero revisa TODA entrega (revisor por defecto)
+*                       @${ORG}/qa
+
+# seguridad-appsec co-revisa todo lo que toque autenticacion, roles o datos personales
+/**/auth/**             @${ORG}/qa @${ORG}/seguridad
+/**/security/**         @${ORG}/qa @${ORG}/seguridad
+**/*login*              @${ORG}/qa @${ORG}/seguridad
+**/*rbac*               @${ORG}/qa @${ORG}/seguridad
+
+# datos-bd co-revisa migraciones y esquema (scripts versionados)
+/migrations/**          @${ORG}/qa @${ORG}/datos
+**/*.sql                @${ORG}/qa @${ORG}/datos
+
+# Pipelines y protección: devops-plataforma
+/.github/**             @${ORG}/qa @${ORG}/devops
+/.gitlab-ci.yml         @${ORG}/qa @${ORG}/devops
+
+# Métricas: cambios ESTRUCTURALES de métricas pasan por gestión...
+/metricas/**            @${ORG}/gestion
+# ...pero el scoreboard lo agrega el REVISOR (qa) dentro del PR de la misión (Regla 5).
+# La regla más específica gana en CODEOWNERS, así el review de qa basta para esta ruta y
+# no fuerza una aprobación extra de gestión en CADA misión (que toca esta línea).
+/metricas/scoreboard.csv @${ORG}/qa

@@ -1,0 +1,26 @@
+{
+  "//": "Lighthouse CI (@lhci/cli, ~0.14 al escribir esto — verifica la versión). La categoria accessibility de Lighthouse es un subconjunto de axe-core; NO reemplaza axe.playwright.spec.ts, lo complementa con score y reporte HTML archivable.",
+  "//uso": "npm i -D @lhci/cli && npx lhci autorun",
+  "ci": {
+    "collect": {
+      "url": [
+        "http://localhost:${PORT}/",
+        "http://localhost:${PORT}/servicios",
+        "http://localhost:${PORT}/contacto"
+      ],
+      "startServerCommand": "${START_CMD}",
+      "startServerReadyPattern": "ready|listening|started",
+      "numberOfRuns": 1,
+      "settings": { "onlyCategories": ["accessibility"], "preset": "desktop" }
+    },
+    "assert": {
+      "assertions": {
+        "categories:accessibility": ["error", { "minScore": 0.95 }]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": "./reportes-a11y/lighthouse"
+    }
+  }
+}

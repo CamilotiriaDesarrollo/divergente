@@ -1,0 +1,17 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "_comentario": "Los secretos NO se escriben aquí: se referencian por keyVault. Reemplazar los ${...}.",
+  "parameters": {
+    "entorno": { "value": "dev" },
+    "proyecto": { "value": "${PROYECTO}" },
+    "sqlAdminPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/${SUB_ID}/resourceGroups/${RG_SECRETOS}/providers/Microsoft.KeyVault/vaults/${KEYVAULT_NAME}"
+        },
+        "secretName": "sqlAdminPassword"
+      }
+    }
+  }
+}

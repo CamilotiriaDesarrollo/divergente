@@ -1,0 +1,11 @@
+# Normaliza finales de línea a LF en el repositorio (consistente en Windows/Linux/Mac)
+* text=auto eol=lf
+
+# Archivos binarios — Git no debe tocar sus finales de línea
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary

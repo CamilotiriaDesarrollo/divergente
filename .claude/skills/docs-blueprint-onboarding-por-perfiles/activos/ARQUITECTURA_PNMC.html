@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arquitectura — Entorno Virtual PNMC: evolución a microservicios</title>
+<style>
+  :root{
+    --morado:#291242; --morado2:#4a2a6e; --verde:#00DA5E; --verde2:#0a8a44;
+    --gris:#f4f2f8; --texto:#2b2b35; --linea:#cfc6e0;
+    --azul:#1565c0; --ambar:#8a6d00; --rojo:#b3261e; --turquesa:#00838f; --oro:#b07d00;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',Arial,sans-serif;color:var(--texto);background:#fff;line-height:1.5;}
+  .pagina{max-width:1080px;margin:0 auto;padding:0 30px 60px;}
+  header{background:var(--morado);color:#fff;padding:42px 30px 36px;text-align:center;}
+  header .sub{color:var(--verde);font-weight:700;text-transform:uppercase;font-size:.78rem;letter-spacing:.2em;margin-bottom:8px;}
+  header h1{font-size:1.7rem;}
+  header p{max-width:780px;margin:12px auto 0;color:#e8e2f2;font-size:.95rem;}
+  h2{color:var(--morado);margin:46px 0 6px;font-size:1.3rem;border-bottom:3px solid var(--verde);display:inline-block;padding-bottom:4px;}
+  .nota{font-size:.9rem;color:#555;margin:6px 0 18px;}
+  /* ====== diagramas ====== */
+  .lienzo{background:var(--gris);border:1px solid var(--linea);border-radius:10px;padding:22px;margin:10px 0 28px;}
+  .capa{border:2px dashed var(--linea);border-radius:8px;padding:12px 14px 14px;margin-bottom:14px;background:#fff;}
+  .capa>.titulo{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7a6f93;margin-bottom:10px;}
+  .fila{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+  .caja{border-radius:7px;padding:10px 12px;color:#fff;font-size:.8rem;text-align:center;min-width:120px;flex:1;box-shadow:0 1px 3px rgba(0,0,0,.18);}
+  .caja b{display:block;font-size:.86rem;margin-bottom:2px;}
+  .caja small{opacity:.85;font-size:.7rem;display:block;}
+  .m{background:var(--morado2);} .v{background:var(--verde2);} .a{background:var(--azul);}
+  .t{background:var(--turquesa);} .o{background:var(--oro);} .r{background:#8e3b46;} .g{background:#5e5e6e;}
+  .flecha{text-align:center;color:#7a6f93;font-size:1.15rem;line-height:1;margin:2px 0 12px;}
+  .etiqueta-flecha{text-align:center;color:#7a6f93;font-size:.72rem;margin:-8px 0 10px;}
+  .doscol{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:760px){.doscol{grid-template-columns:1fr;}}
+  /* tarjetas y tablas */
+  .tarjetas{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:16px 0;}
+  .tarjeta{background:var(--gris);border-left:5px solid var(--verde);border-radius:6px;padding:13px 15px;}
+  .tarjeta h4{color:var(--morado);margin-bottom:5px;font-size:.95rem;}
+  .tarjeta p{font-size:.85rem;}
+  .alerta{border-left-color:var(--rojo);} .alerta h4{color:var(--rojo);}
+  .ambar{border-left-color:var(--ambar);} .ambar h4{color:var(--ambar);}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.87rem;}
+  th{background:var(--morado);color:#fff;text-align:left;padding:8px 10px;}
+  td{padding:7px 10px;border-bottom:1px solid #e3dded;vertical-align:top;}
+  tr:nth-child(even) td{background:var(--gris);}
+  .si{color:var(--verde2);font-weight:700;} .no{color:var(--rojo);font-weight:700;} .medio{color:var(--ambar);font-weight:700;}
+  .etapas{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:16px 0;}
+  .etapa{background:#fff;border:1px solid var(--linea);border-top:6px solid var(--verde);border-radius:8px;padding:14px;}
+  .etapa .num{display:inline-block;background:var(--morado);color:#fff;border-radius:50%;width:26px;height:26px;text-align:center;line-height:26px;font-size:.8rem;font-weight:700;margin-bottom:8px;}
+  .etapa h4{color:var(--morado);font-size:.95rem;margin-bottom:6px;}
+  .etapa ul{margin-left:16px;font-size:.83rem;}
+  .etapa ul li{margin-bottom:4px;}
+  footer{background:var(--gris);text-align:center;padding:20px;font-size:.78rem;color:#666;margin-top:50px;}
+  .veredicto{background:var(--morado);color:#fff;border-radius:10px;padding:20px 24px;margin:24px 0;}
+  .veredicto h3{color:var(--verde);margin-bottom:8px;font-size:1.05rem;}
+  .veredicto p{font-size:.92rem;margin:6px 0;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="sub">Plan Nacional de Música para la Convivencia</div>
+  <h1>Arquitectura del Entorno Virtual: evolución hacia microservicios</h1>
+  <p>Estado actual de la plataforma, arquitectura objetivo por servicios y ruta de migración gradual.
+     La estructura modular existente permite esta evolución <strong>sin reescribir el sistema</strong>.</p>
+</header>
+
+<div class="pagina">
+
+  <h2>1. Arquitectura actual — monolito modular en capas</h2>
+  <p class="nota">El backend ya está particionado internamente por dominios de negocio (cada módulo expone su propio grupo de
+     endpoints) sobre una arquitectura N capas orientada al dominio. Esa partición es la que hace viable la extracción
+     posterior de servicios.</p>
+
+  <div class="lienzo">
+    <div class="capa">
+      <div class="titulo">Clientes</div>
+      <div class="fila">
+        <div class="caja v"><b>Portal público</b><small>React · agenda, noticias, editorial, galería</small></div>
+        <div class="caja v"><b>Geovisor ecosistémico</b><small>React + Leaflet · DIVIPOLA</small></div>
+        <div class="caja v"><b>Consola administrativa</b><small>React · /admin y /colaboradores</small></div>
+      </div>
+    </div>
+    <div class="flecha">▼</div>
+    <div class="etiqueta-flecha">HTTPS · API REST /api/v1 · autenticación por cookie</div>
+    <div class="capa">
+      <div class="titulo">Backend — API única (.NET, Minimal APIs) · módulos por dominio</div>
+      <div class="fila">
+        <div class="caja m"><b>Catálogo</b><small>festivales, escuelas, lutieres, redes</small></div>
+        <div class="caja m"><b>Contenidos</b><small>agenda, noticias, editorial, galería, CMS WebTexts</small></div>
+        <div class="caja m"><b>Mapa / Geo</b><small>TopoJSON, coropletas, DIVIPOLA</small></div>
+        <div class="caja m"><b>Participación</b><small>wizard, registro ciudadano</small></div>
+      </div>
+      <div style="height:10px"></div>
+      <div class="fila">
+        <div class="caja m"><b>Gobernanza</b><small>revisión, reclamaciones, duplicados, calidad</small></div>
+        <div class="caja m"><b>Identidad y roles</b><small>auth, RBAC 6 roles, aliados</small></div>
+        <div class="caja m"><b>Notificaciones</b><small>buzón interno</small></div>
+        <div class="caja m"><b>Administración de datos</b><small>importaciones, monitor, esquema</small></div>
+      </div>
+      <div style="height:10px"></div>
+      <div class="fila">
+        <div class="caja g"><b>Capas compartidas</b><small>Dominio · Contratos (DTO) · Infraestructura (EF Core) · middlewares de seguridad y auditoría</small></div>
+      </div>
+    </div>
+    <div class="flecha">▼</div>
+    <div class="capa">
+      <div class="titulo">Persistencia</div>
+      <div class="fila">
+        <div class="caja a"><b>SQL Server / Azure SQL</b><small>única base de datos · 3 familias de tablas (módulos, gobernanza, sistema) · auditoría inmutable</small></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>2. Arquitectura objetivo — plataforma por microservicios</h2>
+  <p class="nota">Los límites de cada servicio coinciden con los módulos que ya existen (alineación dominio → servicio).
+     Cada servicio es desplegable y escalable de forma independiente, con su propio almacén de datos donde se justifique.</p>
+
+  <div class="lienzo">
+    <div class="capa">
+      <div class="titulo">Clientes</div>
+      <div class="fila">
+        <div class="caja v"><b>Portal público</b></div>
+        <div class="caja v"><b>Geovisor</b></div>
+        <div class="caja v"><b>Consola administrativa</b></div>
+        <div class="caja v"><b>Futuro: app móvil / terceros</b><small>habilitado por el gateway</small></div>
+      </div>
+    </div>
+    <div class="flecha">▼</div>
+    <div class="capa">
+      <div class="titulo">Borde</div>
+      <div class="fila">
+        <div class="caja o"><b>API Gateway</b><small>ruteo, rate limiting, TLS, versionado, CORS</small></div>
+        <div class="caja o"><b>Identidad</b><small>SSO Azure AD / Entra ID · tokens · RBAC centralizado</small></div>
+      </div>
+    </div>
+    <div class="flecha">▼</div>
+    <div class="capa">
+      <div class="titulo">Microservicios de dominio</div>
+      <div class="fila">
+        <div class="caja m"><b>Catálogo ecosistémico</b><small>festivales, escuelas, lutieres, redes</small></div>
+        <div class="caja m"><b>Contenidos / CMS</b><small>agenda, noticias, editorial, galería, WebTexts</small></div>
+        <div class="caja t"><b>Geoservicio</b><small>DIVIPOLA, TopoJSON, agregaciones del mapa</small></div>
+        <div class="caja m"><b>Participación</b><small>registro, wizard, colaboradores</small></div>
+      </div>
+      <div style="height:10px"></div>
+      <div class="fila">
+        <div class="caja m"><b>Gobernanza y revisión</b><small>flujo editorial, reclamaciones, duplicados, auditoría</small></div>
+        <div class="caja t"><b>Notificaciones</b><small>buzón + correo SMTP + futuros canales</small></div>
+        <div class="caja t"><b>Importación / reportes</b><small>Excel server-side, exportaciones, reportes ejecutivos</small></div>
+      </div>
+    </div>
+    <div class="flecha">▼</div>
+    <div class="capa">
+      <div class="titulo">Comunicación y datos</div>
+      <div class="fila">
+        <div class="caja r"><b>Bus de eventos</b><small>Azure Service Bus / colas · "registro aprobado", "ajustes solicitados"…</small></div>
+        <div class="caja a"><b>SQL por servicio</b><small>catálogo · contenidos · participación</small></div>
+        <div class="caja a"><b>BD de gobernanza</b><small>auditoría inmutable separada</small></div>
+        <div class="caja g"><b>Blob Storage</b><small>archivos, imágenes, PDFs</small></div>
+      </div>
+    </div>
+    <div class="flecha">▼</div>
+    <div class="capa">
+      <div class="titulo">Transversales (exigidos por la normativa ministerial)</div>
+      <div class="fila">
+        <div class="caja g"><b>Observabilidad</b><small>logs estructurados, trazas, App Insights</small></div>
+        <div class="caja g"><b>Gestión de secretos</b><small>Key Vault</small></div>
+        <div class="caja g"><b>CI/CD + control de cambios</b><small>despliegue por servicio vía CCC</small></div>
+        <div class="caja g"><b>Auditoría central</b><small>IP origen, hash por evento</small></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>3. ¿Es posible con la estructura actual? — análisis honesto</h2>
+  <table>
+    <tr><th>Factor</th><th>Evaluación</th><th>Detalle</th></tr>
+    <tr><td>Separación de dominios en el código</td><td class="si">FAVORABLE</td><td>Los endpoints ya están agrupados por módulo de negocio; los límites de servicio están "pre-dibujados".</td></tr>
+    <tr><td>Capas DDD (Dominio/Contratos/Infraestructura)</td><td class="si">FAVORABLE</td><td>Los DTOs y entidades por dominio facilitan repartir contratos entre servicios.</td></tr>
+    <tr><td>Frontend</td><td class="si">FAVORABLE</td><td>React consume REST vía servicios centralizados; un gateway haría el cambio casi transparente.</td></tr>
+    <tr><td>Base de datos única con FKs cruzadas</td><td class="medio">TRABAJO MEDIO</td><td>Separar datos por servicio exige cortar dependencias entre familias de tablas (catálogo ↔ gobernanza ↔ usuarios).</td></tr>
+    <tr><td>Auditoría y flujo editorial transversal</td><td class="medio">TRABAJO MEDIO</td><td>El flujo de estados toca varios dominios: requiere bus de eventos y consistencia eventual bien diseñada.</td></tr>
+    <tr><td>Módulo administrativo del frontend</td><td class="medio">TRABAJO MEDIO</td><td>La consola concentra todos los paneles; la refactorización ya prevista en el plan (Fase 3) es prerrequisito.</td></tr>
+    <tr><td>Operación: cada servicio = infraestructura + cambios + ANS</td><td class="no">COSTO ALTO</td><td>Bajo la gestión de cambios del Ministerio, cada servicio multiplica formatos, comités, monitoreo y capacidad a solicitar.</td></tr>
+    <tr><td>Escala real esperada del PNMC</td><td class="no">NO LO EXIGE AÚN</td><td>El volumen de usuarios/tráfico proyectado no justifica hoy la complejidad operativa de 7+ servicios.</td></tr>
+  </table>
+
+  <div class="veredicto">
+    <h3>Veredicto técnico</h3>
+    <p><strong>Sí es posible y la estructura actual es una buena base</strong>: el sistema es un monolito modular con los
+       límites de dominio ya definidos — el camino natural y de menor riesgo es el patrón de <em>extracción gradual</em>
+       ("strangler fig"), no una migración big-bang.</p>
+    <p><strong>Recomendación:</strong> salir a producción como monolito modular (menos costo, menos fricción de homologación
+       y de gestión de cambios), e ir extrayendo como microservicios los módulos que de verdad lo ameritan por carga o
+       ciclo de vida independiente: <em>Notificaciones</em>, <em>Importación/Reportes</em> y <em>Geoservicio</em> primero.
+       La arquitectura objetivo queda definida desde ahora para que cada decisión técnica (gateway, eventos, SSO) apunte
+       en esa dirección.</p>
+  </div>
+
+  <h2>4. Ruta de migración gradual (post–salida a producción)</h2>
+  <div class="etapas">
+    <div class="etapa">
+      <span class="num">1</span>
+      <h4>Preparación (dentro del plan actual)</h4>
+      <ul>
+        <li>Refactor de la consola administrativa por paneles</li>
+        <li>SSO con identidad institucional (Azure AD)</li>
+        <li>Logging estructurado y auditoría centralizada</li>
+        <li>CI/CD con despliegues independientes por componente</li>
+      </ul>
+    </div>
+    <div class="etapa">
+      <span class="num">2</span>
+      <h4>Primeras extracciones (bajo riesgo)</h4>
+      <ul>
+        <li><strong>Notificaciones</strong> → servicio + cola de eventos (correo SMTP real ya previsto)</li>
+        <li><strong>Importación/Reportes</strong> → servicio aislado (resuelve además la migración de Excel al backend)</li>
+        <li>API Gateway delante del monolito + servicios extraídos</li>
+      </ul>
+    </div>
+    <div class="etapa">
+      <span class="num">3</span>
+      <h4>Extracciones por demanda</h4>
+      <ul>
+        <li><strong>Geoservicio</strong> si el tráfico del mapa lo exige (caché propio)</li>
+        <li><strong>Participación</strong> y <strong>Catálogo</strong> solo si la escala lo justifica</li>
+        <li>Separación de datos por servicio con bus de eventos</li>
+        <li>El núcleo de gobernanza puede permanecer como servicio central</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tarjetas">
+    <div class="tarjeta ambar">
+      <h4>Consideración normativa</h4>
+      <p>El manual de arquitectura del Ministerio exige N capas orientada al dominio y cita SOA entre los estilos aceptados:
+         la evolución a servicios es compatible, pero <strong>cada diseño de arquitectura debe ser aprobado por la OTI</strong>
+         (DI-GSI-010). La arquitectura objetivo de este documento es el insumo para esa aprobación.</p>
+    </div>
+    <div class="tarjeta alerta">
+      <h4>Riesgo a evitar</h4>
+      <p>Migrar a microservicios <em>antes</em> del go-live duplicaría el trabajo de infraestructura, ethical hacking,
+         documentación y gestión de cambios, y pondría en riesgo el calendario de 14–16 semanas. La extracción se hace
+         <strong>después</strong>, módulo a módulo, cada una como un cambio formal ante el CCC.</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Entorno Virtual del Plan Nacional de Música para la Convivencia · Anexo de arquitectura del Plan de Trabajo (v3) ·
+  Insumo para aprobación de diseños de arquitectura por la OTI/GGSTI
+</footer>
+
+</body>
+</html>

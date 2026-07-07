@@ -1,0 +1,61 @@
+# CD explicito a Vercel para la linea privada (Next.js / client-server, ver skill
+# devops-monorepo-client-server-vercel). Copiar a .github/workflows/cd-vercel.yml.
+#
+# DECISION CLAVE (leer antes de usar): elige UNA sola via de despliegue.
+#   A) Integracion Git nativa de Vercel (auto-deploy en push/PR) -> NO uses este workflow,
+#      solo mantienes el ci.yml como gate de calidad. Es lo mas simple para demos.
+#   B) Este workflow con Vercel CLI -> DESCONECTA la integracion Git de Vercel para el repo,
+#      o tendras despliegues duplicados (ver gotcha en SKILL.md).
+#
+# Secretos requeridos (GitHub -> Settings -> Secrets and variables -> Actions), NUNCA en el repo:
+#   VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+name: CD (Vercel)
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  preview:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - run: npm i -g vercel@latest
+      - run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+        env: { VERCEL_TOKEN: '${{ secrets.VERCEL_TOKEN }}' }
+      - run: vercel build --token="$VERCEL_TOKEN"
+        env: { VERCEL_TOKEN: '${{ secrets.VERCEL_TOKEN }}' }
+      - run: vercel deploy --prebuilt --token="$VERCEL_TOKEN"
+        env: { VERCEL_TOKEN: '${{ secrets.VERCEL_TOKEN }}' }
+
+  production:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    # Entorno protegido: exige aprobacion manual antes de desplegar (compuerta humana).
+    # En proyectos gubernamentales esta aprobacion representa el CCC ITIL (skill
+    # devops-gestion-cambios-itil-gobierno). Configurar reviewers en Settings -> Environments.
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - run: npm i -g vercel@latest
+      - run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+        env: { VERCEL_TOKEN: '${{ secrets.VERCEL_TOKEN }}' }
+      - run: vercel build --prod --token="$VERCEL_TOKEN"
+        env: { VERCEL_TOKEN: '${{ secrets.VERCEL_TOKEN }}' }
+      - run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        env: { VERCEL_TOKEN: '${{ secrets.VERCEL_TOKEN }}' }

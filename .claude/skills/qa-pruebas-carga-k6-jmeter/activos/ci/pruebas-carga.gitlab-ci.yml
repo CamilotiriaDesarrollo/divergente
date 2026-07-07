@@ -1,0 +1,34 @@
+# .gitlab-ci.yml (fragmento) — Prueba de carga con k6 en GitLab CI institucional.
+# Equivalente portable del workflow de GitHub: usa la imagen oficial grafana/k6,
+# que funciona idéntica en ambos CI.
+#
+# Configurar antes de usar (Settings > CI/CD > Variables, protegidas/enmascaradas):
+#   BASE_URL   -> entorno NO productivo
+#   TOKEN      -> token de prueba (masked), nunca el de producción
+#
+# Ejecución manual desde la UI (source == web) o programada (schedule) fuera de jornada.
+stages:
+  - carga
+
+pruebas_carga:
+  stage: carga
+  image:
+    name: grafana/k6:latest
+    entrypoint: ['']
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  variables:
+    K6_WEB_DASHBOARD: 'true'
+    K6_WEB_DASHBOARD_EXPORT: 'reporte-carga.html'
+  script:
+    # 1) Smoke como gate: si falla, el job para aquí (exit != 0).
+    - k6 run .claude/skills/qa-pruebas-carga-k6-jmeter/activos/k6/smoke-test.js
+    # 2) Carga completa: k6 devuelve exit 99 si se incumple un umbral -> falla el pipeline.
+    - k6 run .claude/skills/qa-pruebas-carga-k6-jmeter/activos/k6/load-stress-test.js --summary-export=summary.json
+  artifacts:
+    when: always
+    paths:
+      - reporte-carga.html
+      - summary.json
+    expire_in: 90 days

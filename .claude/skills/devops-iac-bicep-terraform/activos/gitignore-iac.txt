@@ -1,0 +1,19 @@
+# Fragmento .gitignore para IaC — pegar en el .gitignore del proyecto.
+
+# --- Terraform / OpenTofu ---
+# El estado NUNCA se versiona: contiene secretos en claro.
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+tfplan
+crash.log
+
+# tfvars con datos reales fuera; solo se versiona el ejemplo.
+*.tfvars
+!*.tfvars.example
+
+# SÍ versionar (NO ignorar): .terraform.lock.hcl  -> fija las versiones de providers para todo el equipo.
+
+# --- Bicep ---
+*.parameters.local.json

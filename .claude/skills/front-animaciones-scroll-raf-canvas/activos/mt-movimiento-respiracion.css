@@ -1,0 +1,409 @@
+/* Extracto de DivergenteWEB/app/globals.css (líneas 942-1346).
+   Sistema de movimiento 'Respiración' + secuencia anclada + demos scroll-driven.
+   Adaptar: variables --mt-* de color y las fuentes var(--font-*). */
+
+/* ════════════════════════════════════════════════════════════
+   METODOLOGÍAS · Sistema de movimiento "Respiración"
+   Curvas largas, suaves, sin rebotes. Inhalar / exhalar.
+   ════════════════════════════════════════════════════════════ */
+
+:root {
+  --breathe-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --mt-green: #005f46;
+  --mt-sage: #7cc9a7;
+  --mt-cream: #fff1b8;
+  --mt-accent: #c9764a; /* terracota cálido — usar con moderación */
+}
+
+/* Reveal base — opacidad + desplazamiento sutil, duración larga */
+.mt-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 1.2s var(--breathe-ease), transform 1.2s var(--breathe-ease);
+  will-change: opacity, transform;
+}
+.mt-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Línea que se dibuja sola — divisor entre secciones */
+.mt-rule {
+  height: 1px;
+  background: color-mix(in srgb, var(--mt-green) 35%, transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 1.4s var(--breathe-ease);
+}
+.mt-rule.is-in { transform: scaleX(1); }
+
+/* Halo / forma orgánica que respira (inhala 4s / exhala 4s).
+   Usa la propiedad `scale` (independiente de `transform`) para no pisar
+   el translate de centrado de los halos. */
+@keyframes mt-breathe {
+  0%, 100% { scale: 1;    opacity: 0.62; }
+  50%      { scale: 1.06; opacity: 0.80; }
+}
+.mt-breathe {
+  animation: mt-breathe 8s ease-in-out infinite;
+  will-change: scale, opacity;
+}
+
+/* Punto / círculo que late muy sutil */
+@keyframes mt-pulse {
+  0%, 100% { transform: scale(1);    opacity: 0.85; }
+  50%      { transform: scale(1.04); opacity: 1; }
+}
+.mt-pulse { animation: mt-pulse 8s ease-in-out infinite; }
+
+/* ── Campo "miles de datos": números pequeños que se prenden y apagan
+   como estática (igual que las letras .mt-noise del título). Es el FONDO
+   completo del hero — rejilla que cubre toda la sección, intermitente. ── */
+.mt-data-field {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* velo fino solo en los bordes para que no choque con header/transición */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 7%, #000 95%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 7%, #000 95%, transparent 100%);
+}
+.mt-data-num {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 300;
+  color: var(--mt-sage);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  opacity: 0;
+  animation-name: mt-data-flicker;
+  animation-timing-function: steps(1, jump-end);
+  animation-iteration-count: infinite;
+}
+@keyframes mt-data-flicker {
+  0%   { opacity: 0; }
+  8%   { opacity: var(--on, 0.2); }
+  17%  { opacity: 0; }
+  29%  { opacity: var(--on, 0.2); }
+  45%  { opacity: 0; }
+  54%  { opacity: var(--on, 0.2); }
+  69%  { opacity: 0; }
+  79%  { opacity: var(--on, 0.2); }
+  93%  { opacity: 0; }
+  100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mt-data-num { animation: none; opacity: var(--on, 0.2); }
+}
+
+/* ── Herramientas: secuencia anclada estilo Moon Safari ──
+   Wrapper alto que fija un escenario sticky; al hacer scroll se abre una
+   herramienta a la vez (máscara circular tipo iris + texto) y un nodo recorre
+   el sendero vertical. El progreso (--vis por estación) lo escribe el JS. ── */
+.mt-tools-wrap {
+  position: relative;
+  height: 360vh;
+}
+.mt-tools-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  --rail-x: clamp(54px, 13vw, 190px);
+}
+
+/* sendero + estela + nodo viajero */
+.mt-tools-rail {
+  position: absolute;
+  left: var(--rail-x);
+  top: 13%;
+  height: 74%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: color-mix(in srgb, var(--mt-green) 14%, transparent);
+}
+.mt-tools-rail-trail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 0%;
+  background: color-mix(in srgb, var(--mt-green) 55%, transparent);
+}
+.mt-tools-node {
+  position: absolute;
+  left: 50%;
+  top: 0%;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--mt-green);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--mt-green) 16%, transparent),
+    0 0 18px color-mix(in srgb, var(--mt-green) 45%, transparent);
+}
+
+/* estaciones — apiladas y superpuestas, cross-fade por --vis */
+.mt-tools-station {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  align-items: center;
+  gap: clamp(2rem, 5vw, 5rem);
+  padding: 0 clamp(6%, 9vw, 12%) 0 calc(var(--rail-x) + clamp(2rem, 5vw, 5rem));
+  opacity: 0;
+  will-change: opacity;
+}
+
+/* círculo que se abre como un iris */
+.mt-tools-circle {
+  position: relative;
+  justify-self: center;
+  width: clamp(190px, 30vmin, 400px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--mt-green) 26%, transparent);
+  background: radial-gradient(circle at 50% 50%,
+    color-mix(in srgb, var(--mt-green) 9%, transparent) 0%, transparent 70%);
+  clip-path: circle(calc(var(--vis, 0) * 52%) at 50% 50%);
+}
+.mt-tools-halo {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%,
+    color-mix(in srgb, var(--mt-sage) 38%, transparent) 0%, transparent 62%);
+  animation: mt-breathe 8s ease-in-out infinite;
+  will-change: scale, opacity;
+}
+.mt-tools-circle svg {
+  position: relative;
+  width: clamp(64px, 9vmin, 104px);
+  height: clamp(64px, 9vmin, 104px);
+}
+
+/* bloque de texto de la estación */
+.mt-tools-text {
+  transform: translateY(calc((1 - var(--vis, 0)) * 30px));
+  will-change: transform;
+}
+.mt-tools-kicker {
+  display: block;
+  margin-bottom: 1rem;
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: clamp(0.68rem, 0.9vw, 0.82rem);
+  color: color-mix(in srgb, var(--mt-green) 55%, transparent);
+}
+.mt-tools-title {
+  margin: 0 0 1.1rem;
+  font-family: var(--font-eastman), sans-serif;
+  font-weight: 400;
+  font-size: clamp(2.2rem, 5.2vw, 4.6rem);
+  line-height: 1;
+  color: var(--mt-green);
+}
+.mt-tools-desc {
+  margin: 0;
+  max-width: 26ch;
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 300;
+  font-size: clamp(1rem, 1.4vw, 1.4rem);
+  line-height: 1.6;
+  color: #3d574a;
+}
+
+/* contador 01 · 04, anclado al sendero */
+.mt-tools-counter {
+  position: absolute;
+  left: var(--rail-x);
+  bottom: 8vh;
+  transform: translateX(-50%);
+  font-family: var(--font-eastman), sans-serif;
+  font-size: clamp(1rem, 1.3vw, 1.35rem);
+  letter-spacing: 0.08em;
+  color: var(--mt-green);
+  white-space: nowrap;
+}
+.mt-tools-counter-total {
+  color: color-mix(in srgb, var(--mt-green) 42%, transparent);
+}
+
+/* fallback apilado (mobile / prefers-reduced-motion) */
+.mt-tools-stack {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2.4rem, 8vw, 3.6rem);
+}
+.mt-tools-stack-item {
+  display: flex;
+  gap: 1.3rem;
+  align-items: flex-start;
+}
+.mt-tools-stack-circle {
+  flex-shrink: 0;
+  width: clamp(60px, 17vw, 92px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--mt-green) 24%, transparent);
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--mt-sage) 14%, transparent) 0%, transparent 70%);
+}
+.mt-tools-stack-circle svg {
+  width: 52%;
+  height: 52%;
+}
+.mt-tools-stack-title {
+  margin: 0.35rem 0 0.5rem;
+  font-family: var(--font-eastman), sans-serif;
+  font-weight: 400;
+  font-size: clamp(1.45rem, 6vw, 2.1rem);
+  line-height: 1.05;
+  color: var(--mt-green);
+}
+.mt-tools-stack-desc {
+  margin: 0;
+  max-width: 34ch;
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 300;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #4f6b5d;
+}
+.mt-tools-stack .mt-tools-kicker {
+  margin-bottom: 0.2rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mt-tools-halo { animation: none; }
+}
+
+/* ── Demos de interacción de texto (3 opciones) ─────────────────────────── */
+.demo-wrap {
+  position: relative;
+  max-width: 62rem;
+  margin: 0 auto;
+  border-top: 1px solid rgba(0, 95, 70, 0.12);
+}
+
+.demo-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0 2rem;
+}
+
+.demo-label {
+  position: absolute;
+  bottom: 2.4rem;
+  left: 2rem;
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mt-green);
+  border: 1px solid rgba(0, 95, 70, 0.3);
+  border-radius: 999px;
+  padding: 0.45rem 1rem;
+  background: color-mix(in srgb, #ffffff 35%, transparent);
+}
+
+/* Demo A — typewriter */
+.da-container {
+  font-family: var(--font-eastman), sans-serif;
+  font-size: clamp(1.3rem, 2.6vw, 2.4rem);
+  line-height: 1.4;
+  color: #3d574a;
+  max-width: 52rem;
+}
+.da-word {
+  display: inline-block;
+  will-change: opacity, transform;
+  transition: none;
+}
+.da-accent { color: var(--mt-sage); }
+.da-br { display: block; height: 1.8em; }
+
+/* Demo B — entropía → claridad */
+.db-container {
+  font-family: var(--font-eastman), sans-serif;
+  font-size: clamp(1.3rem, 2.6vw, 2.4rem);
+  line-height: 1.35;
+  color: #3d574a;
+  max-width: 52rem;
+}
+.db-p1w { will-change: transform; }
+.db-p2 { color: rgba(0, 95, 70, 0.55); will-change: opacity, transform; }
+.db-p3 { color: var(--mt-green); will-change: opacity, transform; }
+
+/* Demo C — slides horizontales */
+.dc-nums {
+  position: absolute;
+  top: 6.4rem;
+  right: 2.4rem;
+  display: flex;
+  gap: 1.6rem;
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  color: var(--mt-green);
+}
+.dc-num {
+  will-change: opacity, transform;
+  transition: opacity 0.25s, transform 0.25s;
+}
+.dc-track {
+  display: flex;
+  width: 300%;
+  will-change: transform;
+}
+.dc-slide {
+  width: 33.333%;
+  flex-shrink: 0;
+  padding-right: clamp(2rem, 6vw, 5rem);
+}
+.dc-slide-title {
+  margin: 0 0 1.1rem;
+  font-family: var(--font-eastman), sans-serif;
+  font-size: clamp(1.5rem, 3.4vw, 3rem);
+  line-height: 1.12;
+  color: #3d574a;
+}
+.dc-slide-body {
+  margin: 0;
+  font-family: var(--font-eastman), sans-serif;
+  font-size: clamp(1.1rem, 2.3vw, 2rem);
+  line-height: 1.35;
+  color: rgba(0, 95, 70, 0.55);
+}
+
+/* Fallback estático (mobile / reduced motion) */
+.demo-static-block {
+  padding: 2.4rem 0 2rem;
+  border-top: 1px solid rgba(0, 95, 70, 0.1);
+}
+.demo-label-static {
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(0, 95, 70, 0.38);
+  display: block;
+  margin-bottom: 0.8rem;
+}
+

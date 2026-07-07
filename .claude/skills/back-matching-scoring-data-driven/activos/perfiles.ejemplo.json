@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "_doc": "Plantilla SANITIZADA del esquema real de Scraper-Empleos/config/perfiles.json (el original contiene datos personales y no se copia). Fuente ÚNICA de calibración: la lee el matcher (bloque `match`) y la UI (resto de campos). Añadir un perfil = añadir un objeto a `perfiles` y poblar su `match`; el motor no se toca.",
+  "_semantica_match": {
+    "keywords_positivas": "suman +4 c/u sobre título+descripción, tope +40. Escribirlas ya normalizadas (minúsculas, sin tildes).",
+    "keywords_negativas": "extra del perfil; se unen a las globales del motor. Restan -10 c/u, tope -40.",
+    "roles_handson": "si aparecen en el TÍTULO (word-boundary): -45. El rol que el perfil NO ejerce.",
+    "roles_funcion_excluida": "función ajena dura (ventas/finanzas/recaudación) en el título: -38.",
+    "roles_exec_generico": "liderazgo ejecutivo genérico en el título: -30 (rescatable por keywords).",
+    "ciudades": "diccionario {ciudad: bonus 0..12}; se toma el MAYOR bonus presente en la ubicación.",
+    "modalidad_ciudades_base": "presencial en estas ciudades: +4; presencial fuera: modalidad_penalty_presencial_fuera.",
+    "modalidad_penalty_presencial_fuera": "negativo; qué tan grave es el presencial fuera de base para este perfil.",
+    "tipos_oferta": "tipos que enruta este perfil (empleo/contractor/... o convocatoria_publica/contrato/licitacion).",
+    "requiere_keyword_contenido": "opt-in: sin ninguna keyword positiva propia, el score se capea a 40 (no cruza umbral solo por geo/modalidad/seniority). Dejar en false en perfiles ya calibrados para regresión exacta.",
+    "umbral_match": "opcional; default 50. Bajar solo si las fuentes del perfil son curadas/concisas (títulos cortos)."
+  },
+  "perfiles": [
+    {
+      "id": "P1",
+      "nombre": "Perfil Ejemplo",
+      "rol": "Rol resumido del perfil",
+      "naturaleza": "persona",
+      "activo": true,
+      "descripcion": "Qué busca y qué NO busca este perfil (el matcher no la lee; documenta la calibración).",
+      "match": {
+        "keywords_positivas": ["consultoria", "estrategia", "transformacion digital", "ia"],
+        "keywords_negativas": ["ventas frias"],
+        "roles_handson": ["software engineer", "data scientist", "devops"],
+        "roles_funcion_excluida": ["account manager", "fundraising", "recruiter"],
+        "roles_exec_generico": ["ceo", "executive director", "operations manager"],
+        "ciudades": {
+          "ciudad-base": 10,
+          "capital": 6,
+          "pais": 5,
+          "remoto": 8,
+          "remote": 8,
+          "latam": 7,
+          "global": 6
+        },
+        "modalidad_ciudades_base": ["ciudad-base"],
+        "modalidad_penalty_presencial_fuera": -6,
+        "tipos_oferta": ["empleo", "contractor", "fractional", "freelance"],
+        "requiere_keyword_contenido": false,
+        "umbral_match": 50
+      }
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+# Backup + verificacion de BD gestionada (linea Vercel/Postgres) — GitHub Actions.
+# Fabrica de Software Divergente — skill devops-backup-dr (activo base N0, sin verificar en proyecto propio).
+#
+# Que hace: cada dia toma un pg_dump comprimido, LO VERIFICA con pg_restore --list,
+# lo cifra con GPG (clave publica) y lo sube como artifact + a un bucket con object-lock.
+# SIN SECRETOS: todo entra por ${{ secrets.* }} definidos en el repo/entidad.
+#
+# Portable a GitLab CI: ver el bloque comentado al final (schedules + job equivalente).
+name: backup-verify
+
+on:
+  schedule:
+    - cron: "0 6 * * *"          # 06:00 UTC diario (verificar zona horaria de la entidad)
+  workflow_dispatch: {}           # permite ejecutarlo a mano para un ensayo puntual
+
+permissions:
+  contents: read
+
+jobs:
+  dump-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Instalar cliente de PostgreSQL
+        # IMPORTANTE: pg_dump debe ser de version >= la del servidor (gotcha documentado).
+        # El postgresql-client por defecto de ubuntu-latest puede quedar por debajo del
+        # servidor gestionado (Neon corre PG 16/17). Para fijar la version, usa el repo PGDG:
+        #   sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+        #   wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/pgdg.gpg
+        #   e instala postgresql-client-17 (o la version que coincida con tu BD).
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client gnupg
+
+      - name: Tomar y verificar el dump
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}   # cadena de conexion de solo lectura preferible
+        run: |
+          set -euo pipefail
+          STAMP=$(date -u +%Y%m%d_%H%M%S)
+          FILE="dump_${STAMP}.dump"
+          # -Fc = formato custom comprimido, restaurable selectivamente
+          pg_dump "$DATABASE_URL" -Fc -f "$FILE"
+          # VERIFICACION: si el dump esta corrupto, pg_restore --list falla y corta el pipeline
+          pg_restore --list "$FILE" > /dev/null
+          echo "FILE=$FILE" >> "$GITHUB_ENV"
+
+      - name: Cifrar (GPG, clave publica)
+        env:
+          GPG_PUBLIC_KEY: ${{ secrets.BACKUP_GPG_PUBLIC_KEY }}   # clave PUBLICA del destinatario
+        run: |
+          set -euo pipefail
+          echo "$GPG_PUBLIC_KEY" | gpg --import
+          RECIPIENT=$(gpg --list-keys --with-colons | awk -F: '/^pub/{print $5; exit}')
+          gpg --batch --yes --trust-model always --encrypt --recipient "$RECIPIENT" "$FILE"
+          rm -f "$FILE"                                          # no dejar el dump en claro
+
+      - name: Publicar copia (retencion corta en el runner)
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup
+          path: "*.dump.gpg"
+          retention-days: 7
+      # Copia DURADERA fuera de sitio + object-lock (elige tu proveedor). Ejemplo S3 con inmutabilidad:
+      # - name: Subir a bucket con object-lock (anti-ransomware)
+      #   run: aws s3 cp *.dump.gpg s3://${{ secrets.BACKUP_BUCKET }}/ --only-show-errors
+
+      # Exportar las variables de entorno de Vercel (parte del backup de config):
+      # - name: Respaldar variables de Vercel
+      #   run: npx vercel env pull .env.backup --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+# =====================================================================
+# EQUIVALENTE GitLab CI (.gitlab-ci.yml) — mismo flujo, otra sintaxis:
+# ---------------------------------------------------------------------
+# backup-verify:
+#   image: postgres:16
+#   rules:
+#     - if: '$CI_PIPELINE_SOURCE == "schedule"'   # crear el schedule en CI/CD > Schedules
+#   script:
+#     - export STAMP=$(date -u +%Y%m%d_%H%M%S)
+#     - pg_dump "$DATABASE_URL" -Fc -f dump_$STAMP.dump
+#     - pg_restore --list dump_$STAMP.dump > /dev/null   # verificacion
+#     - apt-get update && apt-get install -y gnupg
+#     - echo "$BACKUP_GPG_PUBLIC_KEY" | gpg --import
+#     - gpg --batch --yes --trust-model always -e -r "$GPG_RECIPIENT" dump_$STAMP.dump
+#   artifacts:
+#     paths: [ "*.dump.gpg" ]
+#     expire_in: 7 days
+# (DATABASE_URL, BACKUP_GPG_PUBLIC_KEY, GPG_RECIPIENT como variables CI/CD protegidas.)
+# =====================================================================

@@ -1,0 +1,36 @@
+# PLANTILLA (sin verificar en proyecto propio) — escaneo de dependencias vulnerables en CI.
+# OWASP A06:2021 "Vulnerable and Outdated Components". Correr en CADA PR, no solo al final.
+# Ubicación: .github/workflows/dependency-scan.yml
+#
+# La línea gobierno ata esto al ethical hacking exigido por DI-GSI-010 L7; en Divergente
+# es una compuerta de release AUTOIMPUESTA, escalada al riesgo del producto.
+
+name: dependency-scan
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1' # lunes 06:00 UTC — captura CVEs nuevos sin cambios de código
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # Falla el PR ante vulnerabilidades high/critical. Ajusta el umbral al riesgo del producto.
+      - name: npm audit (prod deps)
+        run: npm audit --omit=dev --audit-level=high
+      # Opcional: escaneo con base de datos propia de OSV (más señal que npm audit en transitivas).
+      #   npx osv-scanner --lockfile=package-lock.json
+    # Complemento recomendado (fuera de este workflow):
+    #  - Dependabot o Renovate para PRs automáticos de actualización (.github/dependabot.yml).
+    #  - Si una dep de frontend no tiene parche: mover la lógica al backend o reemplazarla,
+    #    y forzar la subdependencia con "overrides" en package.json (npm) / "resolutions" (yarn/pnpm).
+    #    Documenta el override y prueba que no rompe (los overrides fallan en silencio).

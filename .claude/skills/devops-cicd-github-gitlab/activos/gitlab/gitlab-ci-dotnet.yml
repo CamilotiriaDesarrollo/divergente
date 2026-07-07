@@ -1,0 +1,45 @@
+# Equivalente institucional (GitLab CI) del CI .NET + SQL Server.
+# Copiar a .gitlab-ci.yml. Mismo pipeline logico que ../github/ci-dotnet-sqlserver.yml.
+# MSSQL_SA_PASSWORD debe ser una variable CI/CD "protegida" y "enmascarada"
+# (Settings -> CI/CD -> Variables), NUNCA commiteada. Ver skill seg-gestion-secretos-keyvault.
+#
+# Etapa de despliegue a produccion: MANUAL (when: manual). En gobierno esa aprobacion
+# representa el cambio ITIL aprobado por el CCC (skill devops-gestion-cambios-itil-gobierno,
+# M-GSI-003). El CD nunca dispara automatico a produccion estatal.
+stages:
+  - build-test
+  - deploy
+
+build-test:
+  stage: build-test
+  image: mcr.microsoft.com/dotnet/sdk:8.0   # <-- mirror interno si el runner no tiene internet
+  services:
+    - name: mcr.microsoft.com/mssql/server:2022-latest
+      alias: sqlserver                       # el alias es el hostname para conectarse
+  variables:
+    ACCEPT_EULA: "Y"
+    ConnectionStrings__Default: "Server=sqlserver,1433;Database=AppTest;User Id=sa;Password=$MSSQL_SA_PASSWORD;TrustServerCertificate=True"
+  script:
+    - dotnet restore
+    - dotnet build --no-restore -c Release
+    # El logger "junit" NO es nativo de dotnet test: exige el paquete NuGet JunitXml.TestLogger
+    # referenciado en el proyecto de pruebas. Sin el, falla con "No test logger found for 'junit'".
+    # Alternativa sin paquete: generar .trx (nativo) y convertirlo, o usar trx2junit.
+    - dotnet test --no-build -c Release --logger "junit;LogFileName=test-results.xml"
+  artifacts:
+    when: always
+    reports:
+      junit: '**/test-results.xml'   # GitLab muestra los resultados en el MR
+
+deploy:prod:
+  stage: deploy
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "Publicar el artefacto en el entorno gobernado por ITIL. Reemplazar por el paso real."
+    # - dotnet publish -c Release -o ./publish
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual        # compuerta humana = aprobacion del CCC (F-GSI-037)
+      allow_failure: false
+  environment:
+    name: produccion

@@ -1,0 +1,56 @@
+# .gitlab-ci.yml (fragmento de migraciones de BD) — equivalente institucional del workflow de GitHub.
+# La línea de gobierno entrega en GitLab institucional; este archivo es la contraparte portable.
+# Variables protegidas en Settings > CI/CD > Variables (marcar "Masked" y "Protected"):
+#   MSSQL_SA_PASSWORD, STAGING_DB_PASSWORD, PROD_DB_PASSWORD. NUNCA en el YAML.
+
+stages: [validate, staging, production]
+
+variables:
+  FLYWAY_IMAGE: "flyway/flyway:11"      # revisar etiqueta vigente
+  MIGRATIONS_DIR: "db/migrations"
+
+# 1) Validación contra BD efímera desde cero.
+validate-migrations:
+  stage: validate
+  image: "$FLYWAY_IMAGE"
+  services:
+    - name: mcr.microsoft.com/mssql/server:2022-latest
+      alias: mssql
+      variables:
+        ACCEPT_EULA: "Y"
+        MSSQL_SA_PASSWORD: "$MSSQL_SA_PASSWORD"
+  variables:
+    URL: "jdbc:sqlserver://mssql:1433;databaseName=master;encrypt=true;trustServerCertificate=true"
+  script:
+    - flyway -url="$URL" -user=sa -password="$MSSQL_SA_PASSWORD" -locations="filesystem:$MIGRATIONS_DIR" -cleanDisabled=true migrate
+    - flyway -url="$URL" -user=sa -password="$MSSQL_SA_PASSWORD" -locations="filesystem:$MIGRATIONS_DIR" validate
+  rules:
+    - changes: ["db/migrations/**/*", ".gitlab-ci.yml"]
+
+# 2) STAGING automático al mergear a la rama por defecto.
+migrate-staging:
+  stage: staging
+  image: "$FLYWAY_IMAGE"
+  script:
+    - flyway -url="$STAGING_DB_URL" -user="$STAGING_DB_USER" -password="$STAGING_DB_PASSWORD"
+             -locations="filesystem:$MIGRATIONS_DIR" -baselineOnMigrate=true
+             -baselineVersion="$BASELINE_VERSION" -cleanDisabled=true migrate
+  environment: { name: staging }
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# 3) PRODUCCIÓN: 'when: manual' = compuerta del CCC (SDC F-GSI-037). No corre sin clic humano.
+#    Registrar el nº de SDC en la descripción del pipeline antes de lanzarlo.
+migrate-production:
+  stage: production
+  image: "$FLYWAY_IMAGE"
+  when: manual                          # <- la aprobación manual representa el CCC / M-GSI-003
+  allow_failure: false
+  script:
+    - echo "Confirmar respaldo de BD tomado y verificado ANTES de migrar (plan de rollback)."
+    - flyway -url="$PROD_DB_URL" -user="$PROD_DB_USER" -password="$PROD_DB_PASSWORD"
+             -locations="filesystem:$MIGRATIONS_DIR" -baselineOnMigrate=true
+             -baselineVersion="$BASELINE_VERSION" -cleanDisabled=true migrate
+  environment: { name: production }
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'

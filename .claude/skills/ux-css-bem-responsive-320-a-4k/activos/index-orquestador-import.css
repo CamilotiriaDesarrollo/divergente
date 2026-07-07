@@ -1,0 +1,9 @@
+/* Hoja de estilos del portal — dividida por secciones para mantenerla navegable.
+   IMPORTANTE: el orden de los @import respeta la cascada original. No reordenar:
+   los estilos posteriores dependen de que los anteriores ya estén declarados. */
+@import './styles/base.css';
+@import './styles/tirillaF.css';
+@import './styles/footer.css';
+@import './styles/homeLanding.css';
+@import './styles/mapaCirculacion.css';
+@import './styles/internacionalizacion.css';

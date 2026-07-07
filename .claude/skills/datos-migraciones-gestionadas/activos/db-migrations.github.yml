@@ -1,0 +1,88 @@
+# .github/workflows/db-migrations.yml
+# CI/CD de migraciones de BD gestionadas con Flyway. Portable a GitLab CI (ver gitlab-ci.db-migrations.yml).
+# Filosofía: staging se migra solo al mergear; PRODUCCIÓN es una compuerta MANUAL que representa
+# la aprobación del CCC / la SDC F-GSI-037 (ver skill devops-gestion-cambios-itil-gobierno, M-GSI-003).
+#
+# Secretos requeridos (Settings > Secrets): MSSQL_SA_PASSWORD (solo CI efímero),
+#   STAGING_DB_PASSWORD, PROD_DB_PASSWORD. NUNCA credenciales en texto plano en el YAML.
+# Verifica versiones de acciones/imagen antes de usar: pueden haber cambiado tras el cutoff.
+
+name: db-migrations
+
+on:
+  pull_request:
+    paths: ["db/migrations/**", ".github/workflows/db-migrations.yml"]
+  push:
+    branches: [main]
+    paths: ["db/migrations/**"]
+
+env:
+  FLYWAY_IMAGE: flyway/flyway:11          # fija la MAYOR; revisa la etiqueta vigente
+  MIGRATIONS_DIR: db/migrations
+
+jobs:
+  # 1) Validación contra una BD EFÍMERA desde cero: prueba que todo aplica limpio.
+  validate:
+    runs-on: ubuntu-latest
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_SA_PASSWORD: ${{ secrets.MSSQL_SA_PASSWORD }}
+        ports: ["1433:1433"]
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$MSSQL_SA_PASSWORD\" -Q 'SELECT 1'"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Crear BD de prueba
+        run: |
+          docker run --rm --network host mcr.microsoft.com/mssql-tools18 \
+            /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "${{ secrets.MSSQL_SA_PASSWORD }}" \
+            -Q "IF DB_ID('ci_test') IS NULL CREATE DATABASE ci_test;"
+      - name: Flyway migrate (desde cero)
+        run: |
+          docker run --rm --network host -v "${{ github.workspace }}/${MIGRATIONS_DIR}:/flyway/sql" ${FLYWAY_IMAGE} \
+            -url="jdbc:sqlserver://localhost:1433;databaseName=ci_test;encrypt=true;trustServerCertificate=true" \
+            -user=sa -password="${{ secrets.MSSQL_SA_PASSWORD }}" -locations=filesystem:/flyway/sql \
+            -cleanDisabled=true migrate
+      - name: Flyway validate (checksums y orden)
+        run: |
+          docker run --rm --network host -v "${{ github.workspace }}/${MIGRATIONS_DIR}:/flyway/sql" ${FLYWAY_IMAGE} \
+            -url="jdbc:sqlserver://localhost:1433;databaseName=ci_test;encrypt=true;trustServerCertificate=true" \
+            -user=sa -password="${{ secrets.MSSQL_SA_PASSWORD }}" -locations=filesystem:/flyway/sql validate
+
+  # 2) Migrar STAGING automáticamente al mergear a main.
+  migrate-staging:
+    needs: validate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - name: Flyway migrate (staging)
+        run: |
+          docker run --rm -v "${{ github.workspace }}/${MIGRATIONS_DIR}:/flyway/sql" ${FLYWAY_IMAGE} \
+            -url="${{ vars.STAGING_DB_URL }}" -user="${{ vars.STAGING_DB_USER }}" \
+            -password="${{ secrets.STAGING_DB_PASSWORD }}" -locations=filesystem:/flyway/sql \
+            -baselineOnMigrate=true -baselineVersion="${{ vars.BASELINE_VERSION }}" -cleanDisabled=true migrate
+
+  # 3) PRODUCCIÓN: compuerta manual = aprobación del CCC (SDC F-GSI-037).
+  #    En GitHub, el 'environment: production' con "Required reviewers" bloquea hasta aprobación humana.
+  #    Adjuntar el nº de SDC en el resumen del run antes de aprobar (trazabilidad ante auditoría).
+  migrate-production:
+    needs: migrate-staging
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production          # <- protección con revisores obligatorios = la compuerta del CCC
+    steps:
+      - uses: actions/checkout@v4
+      - name: Backup previo (criterio de rollback) — placeholder
+        run: echo "Confirmar respaldo de BD tomado y verificado ANTES de migrar (ver plan de rollback)."
+      - name: Flyway migrate (producción)
+        run: |
+          docker run --rm -v "${{ github.workspace }}/${MIGRATIONS_DIR}:/flyway/sql" ${FLYWAY_IMAGE} \
+            -url="${{ vars.PROD_DB_URL }}" -user="${{ vars.PROD_DB_USER }}" \
+            -password="${{ secrets.PROD_DB_PASSWORD }}" -locations=filesystem:/flyway/sql \
+            -baselineOnMigrate=true -baselineVersion="${{ vars.BASELINE_VERSION }}" -cleanDisabled=true migrate

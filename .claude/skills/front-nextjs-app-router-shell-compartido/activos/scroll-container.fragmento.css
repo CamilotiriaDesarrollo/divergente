@@ -1,0 +1,26 @@
+/* FRAGMENTO EXTRAÍDO de: DivergenteWEB/app/globals.css (líneas 17-24 y 647-651).
+   Patrón: cuando html/body llevan overflow:hidden (home inmersiva sin scroll de
+   ventana), las subpáginas necesitan su PROPIO contenedor de scroll marcado con
+   [data-scroll-container]. Todo efecto de scroll de las páginas debe leer
+   container.scrollTop, NUNCA window.scrollY (window ya no scrollea). */
+
+html,
+body {
+  height: 100%;
+  background: var(--bg, #1a1b2e);
+  color: var(--fg, #f5f5f0);
+  font-family: var(--font-montserrat), sans-serif;
+  overflow: hidden;
+}
+
+/* ── Dynamic viewport height — Chrome/Safari mobile bars excluded ── */
+[data-scroll-container] {
+  height: 100vh;  /* fallback navegadores viejos */
+  height: 100dvh; /* excluye barras móviles dinámicas de Chrome/Safari */
+}
+
+/* En el JSX (SiteShell.tsx):
+   <div ref={containerRef} data-scroll-container className="h-screen overflow-y-auto">
+   Y en cada página que anima con scroll:
+   const container = document.querySelector<HTMLElement>("[data-scroll-container]");
+   const y = container.scrollTop;  // NO window.scrollY */

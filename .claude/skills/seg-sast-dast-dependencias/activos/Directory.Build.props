@@ -1,0 +1,36 @@
+<!-- Directory.Build.props — poner en la RAÍZ de la solución .NET (línea GOBIERNO).
+     MSBuild lo aplica a TODOS los .csproj sin tocar cada uno. Activa la auditoría de
+     paquetes vulnerables en cada `dotnet restore` y los analizadores de seguridad de la
+     plataforma (reglas CA de la familia CA3xxx = seguridad).
+     N0 (sin verificar aún en proyecto propio): `NuGetAudit` requiere .NET SDK >= 8.0.100;
+     auditar transitivas (`NuGetAuditMode=all`) requiere >= 8.0.200 (default en .NET 9).
+     Confirma con `dotnet --version` del entorno antes de asumir el comportamiento. -->
+<Project>
+  <PropertyGroup>
+    <!-- Auditoría de vulnerabilidades en restore (OWASP A9 / DI-GSI-010) -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>       <!-- directas + transitivas -->
+    <NuGetAuditLevel>low</NuGetAuditLevel>     <!-- reportar desde severidad baja -->
+
+    <!-- En CI y en entregas a gobierno: convertir los avisos de vulnerabilidad en ERROR de build -->
+    <!-- NU1901-NU1904 = advisories de severidad baja..crítica -->
+    <WarningsAsErrors>$(WarningsAsErrors);NU1901;NU1902;NU1903;NU1904</WarningsAsErrors>
+
+    <!-- Analizadores de seguridad incluidos en el SDK -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <AnalysisMode>All</AnalysisMode>
+  </PropertyGroup>
+
+  <!-- SAST .NET dedicado (opcional): reglas OWASP/CWE fuera de las CA del SDK.
+       Confirma vigencia/mantenimiento del paquete en nuget.org antes de fijarlo;
+       si está sin mantener, quédate con las CA del SDK + Semgrep p/csharp. -->
+  <!--
+  <ItemGroup>
+    <PackageReference Include="SecurityCodeScan.VS2019" Version="${SECURITYCODESCAN_VERSION}">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  -->
+</Project>

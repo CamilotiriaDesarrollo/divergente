@@ -1,0 +1,74 @@
+# .gitlab-ci-security.yml -> pegar/`include:` en el .gitlab-ci.yml del GitLab INSTITUCIONAL
+# Línea GOBIERNO (.NET 10 / SQL Server bajo M-GSI-002, DI-GSI-010). Cubre A9 de OWASP
+# (componentes con vulnerabilidades conocidas), que DI-GSI-010 hace exigible en recepción.
+#
+# N0 (sin verificar aún en proyecto propio): dos caminos según licencia del GitLab institucional.
+#  A) GitLab ULTIMATE -> usar las plantillas oficiales (SAST/Dependency/Secret/DAST) del `include` de abajo.
+#  B) GitLab CE/Premium (sin Ultimate) -> usar los jobs manuales (Semgrep + dotnet + gitleaks + ZAP), gratis.
+# Confirma la edición con Ayuda > Acerca de, o pregunta a la OTI, antes de elegir.
+
+stages:
+  - test
+  - seguridad
+
+# ============================================================================
+# OPCIÓN A — Plantillas oficiales (requiere GitLab Ultimate). Descomentar:
+# ============================================================================
+# include:
+#   - template: Security/SAST.gitlab-ci.yml
+#   - template: Security/Dependency-Scanning.gitlab-ci.yml
+#   - template: Security/Secret-Detection.gitlab-ci.yml
+#   - template: Security/DAST.gitlab-ci.yml
+# variables:
+#   DAST_WEBSITE: "${DAST_TARGET_URL}"
+
+# ============================================================================
+# OPCIÓN B — Jobs manuales sin Ultimate (portables, gratis)
+# ============================================================================
+
+# --- Dependencias .NET: auditoría de paquetes vulnerables (transitive incluida) ---
+deps-dotnet:
+  stage: seguridad
+  image: mcr.microsoft.com/dotnet/sdk:10.0 # AJUSTAR a la versión de SDK del proyecto
+  script:
+    - dotnet restore
+    # `--vulnerable` requiere SDK >= 8.0.100; falla el job si hay HIGH/CRITICAL:
+    - |
+      dotnet list package --vulnerable --include-transitive 2>&1 | tee vuln.txt
+      if grep -Eiq "High|Critical" vuln.txt; then
+        echo "Dependencias .NET vulnerables (High/Critical) — bloqueado por OWASP A9"; exit 1;
+      fi
+  allow_failure: false
+
+# --- SAST portable: Semgrep (mismas reglas que la línea privada) ---
+sast-semgrep:
+  stage: seguridad
+  image: semgrep/semgrep
+  script:
+    - semgrep ci --config p/owasp-top-ten --config p/csharp --sarif --output semgrep.sarif || true
+  artifacts:
+    paths: [semgrep.sarif]
+    when: always
+
+# --- Secretos: gitleaks ---
+secretos-gitleaks:
+  stage: seguridad
+  image:
+    name: zricethezav/gitleaks:latest # confirmar tag vigente; fijar por digest en gobierno
+    entrypoint: [""]
+  script:
+    - gitleaks detect --source . --redact --verbose
+
+# --- DAST: OWASP ZAP baseline contra el ambiente de pruebas (no producción) ---
+dast-zap:
+  stage: seguridad
+  image:
+    name: ghcr.io/zaproxy/zaproxy:stable # confirmar registro/tag accesible desde la red institucional
+    entrypoint: [""]
+  script:
+    - zap-baseline.py -t "${DAST_TARGET_URL}" -r zap-report.html || true
+  artifacts:
+    paths: [zap-report.html]
+    when: always
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"' # DAST necesita la app desplegada; correr programado

@@ -1,0 +1,12 @@
+evento,descripcion,propiedades,tipo,disparador,capa_acceso,contiene_pii,kpi_asociado
+session_start,Inicio de sesion de navegacion (primera interaccion util),"region,dispositivo,canal",automatico,carga inicial / vuelta tras inactividad,publico,no,MAU / retencion
+page_view,Vista de una ruta,"ruta,titulo",automatico,cambio de ruta (App Router),publico,no,paginas por sesion
+busqueda_realizada,El usuario ejecuta una busqueda,"termino_hash,filtros,n_resultados",interaccion,submit del buscador,publico,no,embudo paso 2
+resultado_abierto,Abre un resultado/ficha desde el listado,"ficha_id,posicion",interaccion,click en resultado,publico,no,North Star
+ficha_vista,Visualiza una ficha de contenido,"ficha_id,categoria",interaccion,render de la ficha,publico,no,nº fichas consultadas
+descarga_recurso,Descarga un documento/recurso publico,"recurso_id,formato",interaccion,click descargar,publico,no,servicio entregado
+registro_iniciado,Abre el formulario de registro,"origen",interaccion,apertura del wizard,publico->registrado,no,activacion (denominador)
+registro_completado,Completa el registro,"metodo",conversion,submit exitoso,registrado,no,activacion (numerador)
+contacto_iniciado,Inicia contacto (lead/WhatsApp/formulario),"canal",conversion,click CTA contacto,publico,no,conversion embudo
+error_visible,Se muestra un error al usuario,"codigo,ruta",diagnostico,render de estado de error,publico,no,calidad de experiencia
+consent_otorgado,El usuario acepta cookies de analitica,"nivel",consentimiento,click en banner,publico,no,base legal (habeas data)

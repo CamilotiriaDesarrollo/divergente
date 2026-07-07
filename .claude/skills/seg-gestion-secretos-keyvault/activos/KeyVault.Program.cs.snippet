@@ -1,0 +1,29 @@
+// KeyVault.Program.cs.snippet — carga de secretos desde Azure Key Vault en ASP.NET Core.
+// Paquetes NuGet (VERIFICAR versión vigente antes de fijar; cambian tras el cutoff):
+//   dotnet add package Azure.Identity
+//   dotnet add package Azure.Extensions.AspNetCore.Configuration.Secrets
+//
+// Local (Development): mandan dotnet user-secrets / .env + `az login`.
+// Producción (Azure):  Managed Identity — SIN client secret en código NI en config.
+
+using Azure.Identity;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Solo se carga Key Vault fuera de Development; en local no se depende de la nube.
+if (!builder.Environment.IsDevelopment())
+{
+    var keyVaultUri = builder.Configuration["KEY_VAULT_URI"]
+        ?? throw new InvalidOperationException("Falta KEY_VAULT_URI en la configuración.");
+
+    // DefaultAzureCredential encadena: Managed Identity (prod) -> az CLI / Visual Studio (local).
+    // En producción NO deben existir variables AZURE_CLIENT_SECRET: se usa identidad administrada.
+    builder.Configuration.AddAzureKeyVault(
+        new Uri(keyVaultUri),
+        new DefaultAzureCredential());
+}
+
+// Los secretos se leen luego como configuración normal:
+//   var cn = builder.Configuration["ConnectionStrings:Default"];
+// El proveedor de Key Vault mapea el separador '--' a ':'  ->  un secreto llamado
+// "ConnectionStrings--Default" queda en Configuration["ConnectionStrings:Default"].

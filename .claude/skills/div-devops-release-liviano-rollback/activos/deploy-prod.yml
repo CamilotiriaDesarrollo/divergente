@@ -1,0 +1,66 @@
+# Deploy a producción con compuerta ligera + smoke test — línea divergente.
+# Plantilla N0. Copia a .github/workflows/deploy-prod.yml y adapta los <...>.
+# Equivale a la aprobación manual del CCC de la línea institucional, pero es
+# una compuerta de UNA persona (required reviewer), no un comité.
+#
+# Requiere configurar en el repo: Settings > Environments > "production"
+#   - Required reviewers: <tu-usuario/equipo>   (esto crea la compuerta)
+#   - Secrets del entorno: DEPLOY_TOKEN, etc.
+#
+# Portar a GitLab CI: un job con `environment: production` y `when: manual`.
+
+name: deploy-prod
+
+on:
+  push:
+    branches: [main]        # deploy al mergear a main
+  workflow_dispatch: {}      # o disparo manual para hotfix
+
+concurrency:
+  group: deploy-prod         # nunca dos deploys de prod a la vez
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production        # <- la compuerta: espera la aprobación del reviewer
+      url: ${{ vars.PROD_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      # --- Migración de BD ANTES del deploy (retrocompatible / expand) ---
+      # - run: npm run migrate:up
+      #   env:
+      #     DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      # --- Deploy (adaptar al proveedor) ---
+      - name: Deploy
+        run: |
+          echo "Reemplazar por el deploy real, p. ej.:"
+          echo "  npx vercel deploy --prod --token=${{ secrets.DEPLOY_TOKEN }}"
+          echo "  o docker push <registry>/app:git-${GITHUB_SHA}"
+
+      # --- Smoke test post-deploy: si falla, el job falla y disparas el rollback ---
+      - name: Smoke test (health check)
+        run: |
+          set -e
+          for i in $(seq 1 10); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "${{ vars.PROD_URL }}/api/health" || true)
+            if [ "$code" = "200" ]; then echo "health OK"; exit 0; fi
+            echo "intento $i: HTTP $code — reintentando..."; sleep 6
+          done
+          echo "Health check falló -> ROLLBACK (ver runbook §3)"; exit 1
+
+# ROLLBACK (manual, ver runbook-release-rollback.md §3):
+#   Vercel:       vercel rollback <url-anterior>   (o Instant Rollback en el dashboard)
+#   Contenedores: redeploy de <registry>/app:git-<sha-anterior>
+#   BD:           NO revertir esquema si fue expand/contract; PITR solo ante corrupción.

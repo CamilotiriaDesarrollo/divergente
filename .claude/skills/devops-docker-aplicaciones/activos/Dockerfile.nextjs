@@ -1,0 +1,35 @@
+# syntax=docker/dockerfile:1
+# ---------------------------------------------------------------------------
+# Imagen para AUTO-HOSPEDAR Next.js (16 / React 19) con SSR o route handlers
+# FUERA de Vercel. Requiere `output: 'standalone'` en next.config.(js|ts).
+# NO uses esta imagen si el proyecto es export estatico (skill
+# front-nextjs-export-estatico-sin-backend): ese va a CDN/Vercel SIN contenedor.
+# Node 22 LTS; Next 16 requiere Node 20+ (>=18.18 era el minimo de Next 15).
+# ---------------------------------------------------------------------------
+ARG NODE_VERSION=22
+
+FROM node:${NODE_VERSION}-bookworm-slim AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+
+FROM node:${NODE_VERSION}-bookworm-slim AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build           # con output:'standalone' produce .next/standalone
+
+FROM node:${NODE_VERSION}-bookworm-slim AS runtime
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0
+WORKDIR /app
+# standalone empaqueta server.js + solo las deps necesarias (imagen chica)
+COPY --from=build --chown=node:node /app/.next/standalone ./
+COPY --from=build --chown=node:node /app/.next/static ./.next/static
+COPY --from=build --chown=node:node /app/public ./public
+USER node
+EXPOSE 3000
+CMD ["node", "server.js"]

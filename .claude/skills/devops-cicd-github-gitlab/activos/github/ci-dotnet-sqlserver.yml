@@ -1,0 +1,53 @@
+# CI para linea gobierno .NET + SQL Server (normativa M-GSI-002 / DI-GSI-010).
+# Copiar a .github/workflows/ci-dotnet.yml. En el ministerio el CI vive en GitLab
+# institucional: usar este archivo como fuente y portarlo con ../gitlab/gitlab-ci-dotnet.yml.
+# Sin secretos: MSSQL_SA_PASSWORD viene del gestor de secretos (ver skill seg-gestion-secretos-keyvault).
+#
+# VERSIONES (verificar): .NET SDK 8.0 (LTS). Imagen SQL Server 2022. La ruta de sqlcmd
+# en la imagen 2022 es /opt/mssql-tools18/bin/sqlcmd y exige -C (confiar en el cert).
+name: CI (.NET)
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: ${{ secrets.MSSQL_SA_PASSWORD }}
+        ports:
+          - 1433:1433
+        # Espera a que SQL Server acepte conexiones antes de correr los tests de integracion.
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$MSSQL_SA_PASSWORD\" -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
+          --health-start-period 30s
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - run: dotnet restore
+      - run: dotnet build --no-restore -c Release
+      - name: Test
+        env:
+          # Cadena leida por la app via IConfiguration (patron ConnectionStrings__Default).
+          ConnectionStrings__Default: "Server=localhost,1433;Database=AppTest;User Id=sa;Password=${{ secrets.MSSQL_SA_PASSWORD }};TrustServerCertificate=True"
+        run: dotnet test --no-build -c Release --logger "trx;LogFileName=test-results.trx" --collect:"XPlat Code Coverage"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dotnet-test-results   # evidencia de pruebas exigible por DI-GSI-010 / G3-G5
+          path: '**/test-results.trx'

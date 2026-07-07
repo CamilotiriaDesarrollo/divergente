@@ -1,0 +1,97 @@
+/* Barra flotante de accesibilidad + alto contraste — NTC 5854 AA
+ * Origen: Plataforma Conecta / client/src/styles/base.css (líneas 347-419)
+ * Idéntico en Interfase Sistemas y Portal ISI (client/src/index.css).
+ *
+ * REQUISITO DURO: para que el escalado de fuente de accesibilidadBar.tsx
+ * funcione, TODO el texto del portal debe usar unidades relativas al root
+ * (rem), nunca px fijos. El botón A+ cambia document.documentElement.style.fontSize
+ * y solo reescala lo que está en rem.
+ */
+
+/* ─── Barra flotante de accesibilidad ─────────────────────── */
+.acc-bar {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--min-morado);
+  border-radius: 10px 0 0 10px;
+  padding: 8px 6px;
+  box-shadow: -3px 0 16px rgba(0, 0, 0, 0.25);
+}
+.acc-bar__btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #333;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    transform 0.1s;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+}
+.acc-bar__btn:hover {
+  background: #ede9f8;
+  color: var(--min-morado);
+  transform: scale(1.05);
+}
+.acc-bar__btn--active {
+  background: var(--min-morado-oscuro);
+  color: #fff;
+}
+.acc-bar__btn--active:hover {
+  background: var(--min-morado-oscuro);
+  color: #fff;
+}
+.acc-bar__btn svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+.acc-bar__btn--text {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.acc-bar__btn--sm {
+  font-size: 13px;
+}
+.acc-bar__btn sup {
+  font-size: 9px;
+  vertical-align: super;
+}
+
+/* Alto contraste — activado por la clase .high-contrast en <html> */
+.high-contrast body {
+  background: #000 !important;
+  color: #fff !important;
+}
+.high-contrast a {
+  color: #ff0 !important;
+}
+
+/* ─── Respetar prefers-reduced-motion ─────────────────────── */
+/* Origen: Portal ISI / client/src/index.css (línea 3845).
+ * Anula transiciones y transforms de hover cuando el SO pide menos movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  .sistema-card__link,
+  .sistema-card__bg,
+  .vitrina__chip {
+    transition: none;
+  }
+  .sistema-card__link:hover {
+    transform: none;
+  }
+}

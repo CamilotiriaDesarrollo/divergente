@@ -1,0 +1,1409 @@
+/* ─── PROPUESTA F — Magnetic dock ────────────────────────── */
+.tirilla-f {
+  background: #fff;
+  border-top: 1px solid #ebebeb;
+  border-bottom: 1px solid #ebebeb;
+  padding: 20px 0 16px;
+  user-select: none;
+}
+/* ╔══════════════════════════════════════════════════════════════
+   ║  TIRILLA-F — PARÁMETROS CSS AJUSTABLES
+   ║  Fijos:     slot 96×50px  · SVG max 92×44px  · gap 20px
+   ║  Carrusel:  slot 66×38px  · SVG max 62×34px  · gap 16px
+   ║  Nombre fijo: 9px | Nombre carrusel: 8px
+   ╚══════════════════════════════════════════════════════════════ */
+
+.tirilla-f__inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0;
+  height: 158px;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+/* ── sección fija: SINIC · SIPA · SIA · CIN ───────────────── */
+.tirilla-f__fixed {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* ← espacio entre logos fijos */
+  flex-shrink: 0;
+}
+
+/* slot de cada logo fijo */
+.tirilla-f__item {
+  position: relative;
+  flex: 0 0 108px; /* ← ancho del slot fijo */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+}
+
+/* contenedor del logo — alineado al fondo para que todos "apoyen" en la misma línea */
+.tirilla-f__logo-wrap {
+  width: 108px; /* ← ancho del área del logo fijo */
+  height: 40px; /* ← alto del área del logo fijo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: bottom center;
+  transition: transform 0.1s cubic-bezier(0.34, 1.4, 0.64, 1);
+  will-change: transform;
+}
+
+/* sigla como logo (ej. CIN) */
+.tirilla-f__sigla {
+  font-size: 18px; /* ← tamaño de la sigla en fijos */
+  font-weight: 900;
+  color: #c5bedd;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
+  transition:
+    color 0.25s ease,
+    text-shadow 0.25s ease;
+}
+.tirilla-f__sigla--active {
+  color: var(--min-morado);
+  text-shadow:
+    0 0 18px rgba(61, 26, 120, 0.4),
+    0 0 36px rgba(61, 26, 120, 0.18);
+}
+
+/* SVG inline en fijos */
+.tirilla-f__svg-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 104px; /* ← ancho del SVG en fijos */
+  height: 36px; /* ← alto del SVG en fijos */
+  color: #c5bedd;
+  transition:
+    color 0.25s ease,
+    filter 0.25s ease;
+}
+.tirilla-f__svg-logo svg {
+  max-width: 104px; /* ← max-width del SVG en fijos */
+  max-height: 36px; /* ← max-height del SVG en fijos */
+  width: auto;
+  height: auto;
+  display: block;
+}
+.tirilla-f__svg-logo--active {
+  color: var(--min-morado);
+  filter: drop-shadow(0 0 8px rgba(61, 26, 120, 0.45)) drop-shadow(0 0 22px rgba(61, 26, 120, 0.2));
+}
+
+/* descripción bajo el logo fijo — absoluta para no afectar la altura del ítem */
+.tirilla-f__nombre {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 110px; /* ← ancho del texto de descripción en fijos */
+  text-align: center;
+  font-size: 9px; /* ← tamaño del texto de descripción en fijos */
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: 0.2px;
+  color: transparent;
+  transition: color 0.22s ease;
+  pointer-events: none;
+  white-space: normal;
+}
+.tirilla-f__nombre--active {
+  color: var(--min-morado);
+}
+
+/* ── divisor ───────────────────────────────────────────────── */
+.tirilla-f__divider {
+  width: 1px;
+  align-self: stretch;
+  background: linear-gradient(
+    to bottom,
+    transparent 10%,
+    #ddd8f0 40%,
+    #ddd8f0 60%,
+    transparent 90%
+  );
+  flex-shrink: 0;
+  margin: 0 20px; /* ← espacio a cada lado del divisor */
+}
+
+/* ── wrappers de sección (desktop: pass-through) ───────────── */
+.tirilla-f__fixed-wrap {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.tirilla-f__carousel-section {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+.tirilla-f__mobile-label {
+  display: none;
+}
+
+/* ── swipe hint (solo en mobile) ───────────────────────────── */
+.tirilla-f__swipe-hint {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: rgba(180, 160, 220, 0.42);
+  pointer-events: none;
+}
+.tirilla-f--dark .tirilla-f__swipe-hint {
+  color: rgba(210, 180, 255, 0.45);
+}
+@keyframes swipe-nudge {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateX(-4px);
+  }
+}
+.tirilla-f__swipe-hint::before {
+  content: '⟵';
+  display: inline-block;
+  animation: swipe-nudge 1.8s ease-in-out infinite;
+}
+.tirilla-f__swipe-hint::after {
+  content: '⟶';
+  display: inline-block;
+  animation: swipe-nudge 1.8s ease-in-out infinite reverse;
+}
+
+/* ── carrusel ──────────────────────────────────────────────── */
+.tirilla-f__carousel-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+.tirilla-f__arrow {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 28px;
+  color: #c5bedd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition:
+    color 0.2s,
+    background 0.2s;
+  line-height: 1;
+  padding: 0;
+}
+.tirilla-f__arrow:hover {
+  color: var(--min-morado);
+  background: rgba(61, 26, 120, 0.06);
+}
+
+.tirilla-f__carousel {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px; /* ← espacio entre ítems del carrusel */
+  overflow-x: scroll; /* scroll (no auto): siempre crea scroll container sin importar el contenido */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  align-items: center;
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+.tirilla-f__carousel::-webkit-scrollbar {
+  display: none;
+}
+
+/* ítems del carrusel — más pequeños que los fijos */
+.tirilla-f__item--carousel {
+  position: relative;
+  flex: 0 0 120px; /* ← ancho del slot en carrusel */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+}
+.tirilla-f__logo-wrap--carousel {
+  width: 120px; /* ← ancho área logo carrusel */
+  height: 60px; /* ← alto área logo carrusel */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
+  transition: transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1);
+  will-change: transform;
+}
+.tirilla-f__svg-logo--carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 116px; /* ← ancho SVG en carrusel */
+  height: 56px; /* ← alto SVG en carrusel */
+  color: #c5bedd;
+  transition:
+    color 0.25s ease,
+    filter 0.25s ease;
+}
+.tirilla-f__svg-logo--carousel svg {
+  max-width: 116px;
+  max-height: 56px;
+  width: auto;
+  height: auto;
+  display: block;
+}
+.tirilla-f__sigla--carousel {
+  font-size: 15px; /* ← tamaño sigla en carrusel */
+  font-weight: 800;
+  color: #c5bedd;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  transition: color 0.25s ease;
+}
+
+.tirilla-f__nombre--carousel {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90px; /* ← ancho texto descripción en carrusel */
+  text-align: center;
+  font-size: 8px; /* ← tamaño texto descripción en carrusel */
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.2px;
+  color: transparent;
+  transition: color 0.22s ease;
+  pointer-events: none;
+  white-space: normal;
+}
+
+/* hover en ítems del carrusel */
+.tirilla-f__item--carousel:hover .tirilla-f__logo-wrap--carousel {
+  transform: scale(1.5);
+}
+.tirilla-f__item--carousel:hover .tirilla-f__nombre--carousel {
+  color: var(--min-morado);
+}
+.tirilla-f__item--carousel:hover .tirilla-f__sigla--carousel {
+  color: var(--min-morado);
+  text-shadow:
+    0 0 14px rgba(61, 26, 120, 0.45),
+    0 0 30px rgba(61, 26, 120, 0.18);
+}
+.tirilla-f__item--carousel:hover .tirilla-f__svg-logo--carousel {
+  color: var(--min-morado);
+  filter: drop-shadow(0 0 8px rgba(61, 26, 120, 0.45)) drop-shadow(0 0 22px rgba(61, 26, 120, 0.2));
+}
+
+/* ── etiquetas de sección ──────────────────────────────────── */
+/* ── fila de títulos encima del strip ─────────────────────── */
+.tirilla-f__titles {
+  display: flex;
+  align-items: flex-end;
+  padding: 0 32px 6px;
+  gap: 0;
+}
+
+.tirilla-f__title-fixed {
+  flex-shrink: 0;
+  width: 480px; /* aprox. ancho de la sección fija a 1440px */
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: rgba(180, 160, 220, 0.5);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.tirilla-f__title-carousel {
+  flex: 1;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: rgba(180, 160, 220, 0.5);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.tirilla-f--dark .tirilla-f__title-fixed,
+.tirilla-f--dark .tirilla-f__title-carousel {
+  color: rgba(210, 180, 255, 0.72);
+}
+
+/* ─── TIRILLA-F DARK VARIANT ─────────────────────────────────
+   Misma estructura, mismo comportamiento, fondo oscuro.
+   Hover/active: blanco en vez de morado.
+   ─────────────────────────────────────────────────────────── */
+.tirilla-f--dark {
+  background: #0d0b1a;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.tirilla-f--dark .tirilla-f__divider {
+  background: linear-gradient(
+    to bottom,
+    transparent 10%,
+    rgba(210, 180, 255, 0.5) 40%,
+    rgba(210, 180, 255, 0.5) 60%,
+    transparent 90%
+  );
+}
+
+/* logos fijos — estado reposo */
+.tirilla-f--dark .tirilla-f__svg-logo {
+  color: rgba(210, 180, 255, 0.72);
+}
+.tirilla-f--dark .tirilla-f__sigla {
+  color: rgba(210, 180, 255, 0.72);
+}
+.tirilla-f--dark .tirilla-f__nombre {
+  color: transparent;
+}
+
+/* logos fijos — estado activo (dock hover) */
+.tirilla-f--dark .tirilla-f__svg-logo--active {
+  color: #e8d8ff;
+  filter: drop-shadow(0 0 8px rgba(210, 180, 255, 0.8))
+    drop-shadow(0 0 24px rgba(210, 180, 255, 0.4));
+}
+.tirilla-f--dark .tirilla-f__sigla--active {
+  color: #e8d8ff;
+  text-shadow:
+    0 0 16px rgba(210, 180, 255, 0.8),
+    0 0 36px rgba(210, 180, 255, 0.4);
+}
+.tirilla-f--dark .tirilla-f__nombre--active {
+  color: rgba(210, 180, 255, 0.9);
+}
+
+/* carrusel — estado reposo */
+.tirilla-f--dark .tirilla-f__svg-logo--carousel {
+  color: rgba(210, 180, 255, 0.72);
+}
+.tirilla-f--dark .tirilla-f__sigla--carousel {
+  color: rgba(210, 180, 255, 0.72);
+}
+.tirilla-f--dark .tirilla-f__nombre--carousel {
+  color: transparent;
+}
+
+/* carrusel — hover */
+.tirilla-f--dark .tirilla-f__item--carousel:hover .tirilla-f__svg-logo--carousel {
+  color: #e8d8ff;
+  filter: drop-shadow(0 0 8px rgba(210, 180, 255, 0.8))
+    drop-shadow(0 0 24px rgba(210, 180, 255, 0.4));
+}
+.tirilla-f--dark .tirilla-f__item--carousel:hover .tirilla-f__sigla--carousel {
+  color: #e8d8ff;
+  text-shadow:
+    0 0 14px rgba(210, 180, 255, 0.8),
+    0 0 30px rgba(210, 180, 255, 0.4);
+}
+.tirilla-f--dark .tirilla-f__item--carousel:hover .tirilla-f__nombre--carousel {
+  color: rgba(210, 180, 255, 0.9);
+}
+
+/* flechas */
+.tirilla-f--dark .tirilla-f__arrow {
+  color: rgba(210, 180, 255, 0.72);
+}
+.tirilla-f--dark .tirilla-f__arrow:hover {
+  color: #e8d8ff;
+  background: rgba(210, 180, 255, 0.1);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — orden: 4K → 2K → xl → lg → tablet → mobile
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── 4K ≥ 2560px ─────────────────────────────────────────── */
+@media (min-width: 2560px) {
+  /* Header */
+  .hdr-govbar__inner,
+  .hdr-main__inner,
+  .hdr-nav__inner {
+    max-width: 2400px;
+  }
+  .hdr-govbar {
+    height: 72px;
+  }
+  .hdr-govbar__govco-logo {
+    height: 66px;
+  }
+  .hdr-main__min-logo {
+    height: 160px;
+  }
+  .hdr-main {
+    padding: 32px 0;
+  }
+  .hdr-nav__link {
+    font-size: 15px;
+    padding: 14px 18px;
+  }
+  /* Footer */
+  .footer-min__inner {
+    max-width: 2400px;
+  }
+  .footer-min__nombre {
+    font-size: 18px;
+  }
+  .footer-min__dir,
+  .footer-min__col p,
+  .footer-min__col a {
+    font-size: 15px;
+  }
+  .footer-min__col h4 {
+    font-size: 17px;
+  }
+  /* TirillaF */
+  .tirilla-f__titles {
+    padding: 0 40px 8px;
+  }
+  .tirilla-f__title-fixed {
+    width: 872px;
+    font-size: 15px;
+  }
+  .tirilla-f__title-carousel {
+    font-size: 15px;
+  }
+  .tirilla-f__inner {
+    max-width: 2400px;
+    height: 240px;
+  }
+  .tirilla-f__fixed {
+    gap: 18px;
+  }
+  .tirilla-f__item {
+    flex: 0 0 192px;
+  }
+  .tirilla-f__logo-wrap {
+    width: 192px;
+    height: 72px;
+  }
+  .tirilla-f__svg-logo {
+    width: 188px;
+    height: 68px;
+  }
+  .tirilla-f__svg-logo svg {
+    max-width: 188px;
+    max-height: 68px;
+  }
+  .tirilla-f__sigla {
+    font-size: 32px;
+  }
+  .tirilla-f__nombre {
+    font-size: 13px;
+    width: 200px;
+  }
+  .tirilla-f__divider {
+    margin: 0 48px;
+  }
+  .tirilla-f__arrow {
+    width: 60px;
+    height: 60px;
+    font-size: 44px;
+  }
+  .tirilla-f__carousel {
+    gap: 36px;
+  }
+  .tirilla-f__item--carousel {
+    flex: 0 0 200px;
+  }
+  .tirilla-f__logo-wrap--carousel {
+    width: 200px;
+    height: 100px;
+  }
+  .tirilla-f__svg-logo--carousel {
+    width: 196px;
+    height: 96px;
+  }
+  .tirilla-f__svg-logo--carousel svg {
+    max-width: 196px;
+    max-height: 96px;
+  }
+  .tirilla-f__sigla--carousel {
+    font-size: 28px;
+  }
+  .tirilla-f__nombre--carousel {
+    font-size: 11px;
+    width: 210px;
+  }
+}
+
+/* ── 2K: 1920–2559px ─────────────────────────────────────── */
+@media (min-width: 1920px) and (max-width: 2559px) {
+  /* Header */
+  .hdr-govbar__inner,
+  .hdr-main__inner,
+  .hdr-nav__inner {
+    max-width: 1880px;
+  }
+  .hdr-govbar {
+    height: 62px;
+  }
+  .hdr-govbar__govco-logo {
+    height: 56px;
+  }
+  .hdr-main__min-logo {
+    height: 128px;
+  }
+  .hdr-main {
+    padding: 26px 0;
+  }
+  .hdr-nav__link {
+    font-size: 13.5px;
+    padding: 11px 16px;
+  }
+  /* Footer */
+  .footer-min__inner {
+    max-width: 1880px;
+  }
+  /* TirillaF */
+  .tirilla-f__titles {
+    padding: 0 36px 6px;
+  }
+  .tirilla-f__title-fixed {
+    width: 616px;
+    font-size: 13px;
+  }
+  .tirilla-f__title-carousel {
+    font-size: 13px;
+  }
+  .tirilla-f__inner {
+    max-width: 1880px;
+    height: 196px;
+  }
+  .tirilla-f__fixed {
+    gap: 12px;
+  }
+  .tirilla-f__item {
+    flex: 0 0 138px;
+  }
+  .tirilla-f__logo-wrap {
+    width: 138px;
+    height: 52px;
+  }
+  .tirilla-f__svg-logo {
+    width: 134px;
+    height: 48px;
+  }
+  .tirilla-f__svg-logo svg {
+    max-width: 134px;
+    max-height: 48px;
+  }
+  .tirilla-f__sigla {
+    font-size: 22px;
+  }
+  .tirilla-f__nombre {
+    font-size: 10px;
+    width: 148px;
+  }
+  .tirilla-f__divider {
+    margin: 0 30px;
+  }
+  .tirilla-f__arrow {
+    width: 46px;
+    height: 46px;
+    font-size: 36px;
+  }
+  .tirilla-f__carousel {
+    gap: 28px;
+  }
+  .tirilla-f__item--carousel {
+    flex: 0 0 155px;
+  }
+  .tirilla-f__logo-wrap--carousel {
+    width: 155px;
+    height: 78px;
+  }
+  .tirilla-f__svg-logo--carousel {
+    width: 151px;
+    height: 74px;
+  }
+  .tirilla-f__svg-logo--carousel svg {
+    max-width: 151px;
+    max-height: 74px;
+  }
+  .tirilla-f__sigla--carousel {
+    font-size: 20px;
+  }
+  .tirilla-f__nombre--carousel {
+    font-size: 9px;
+    width: 164px;
+  }
+}
+
+/* ── xl: 1280–1439px ─────────────────────────────────────── */
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .tirilla-f__titles {
+    padding: 0 28px 5px;
+  }
+  .tirilla-f__title-fixed {
+    width: 425px;
+    font-size: 10px;
+  }
+  .tirilla-f__title-carousel {
+    font-size: 10px;
+  }
+  .tirilla-f__inner {
+    height: 144px;
+  }
+  .tirilla-f__fixed {
+    gap: 7px;
+  }
+  .tirilla-f__item {
+    flex: 0 0 98px;
+  }
+  .tirilla-f__logo-wrap {
+    width: 98px;
+    height: 36px;
+  }
+  .tirilla-f__svg-logo {
+    width: 94px;
+    height: 32px;
+  }
+  .tirilla-f__svg-logo svg {
+    max-width: 94px;
+    max-height: 32px;
+  }
+  .tirilla-f__sigla {
+    font-size: 16px;
+  }
+  .tirilla-f__nombre {
+    font-size: 8.5px;
+    width: 104px;
+  }
+  .tirilla-f__divider {
+    margin: 0 16px;
+  }
+  .tirilla-f__arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 24px;
+  }
+  .tirilla-f__carousel {
+    gap: 18px;
+  }
+  .tirilla-f__item--carousel {
+    flex: 0 0 108px;
+  }
+  .tirilla-f__logo-wrap--carousel {
+    width: 108px;
+    height: 54px;
+  }
+  .tirilla-f__svg-logo--carousel {
+    width: 104px;
+    height: 50px;
+  }
+  .tirilla-f__svg-logo--carousel svg {
+    max-width: 104px;
+    max-height: 50px;
+  }
+  .tirilla-f__sigla--carousel {
+    font-size: 15px;
+  }
+  .tirilla-f__nombre--carousel {
+    font-size: 7.5px;
+    width: 116px;
+  }
+}
+
+/* ── lg: 1024–1279px ─────────────────────────────────────── */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .tirilla-f__titles {
+    padding: 0 24px 4px;
+  }
+  .tirilla-f__title-fixed {
+    width: 346px;
+    font-size: 9px;
+  }
+  .tirilla-f__title-carousel {
+    font-size: 9px;
+  }
+  .tirilla-f__inner {
+    height: 128px;
+  }
+  .tirilla-f__fixed {
+    gap: 6px;
+  }
+  .tirilla-f__item {
+    flex: 0 0 82px;
+  }
+  .tirilla-f__logo-wrap {
+    width: 82px;
+    height: 30px;
+  }
+  .tirilla-f__svg-logo {
+    width: 78px;
+    height: 26px;
+  }
+  .tirilla-f__svg-logo svg {
+    max-width: 78px;
+    max-height: 26px;
+  }
+  .tirilla-f__sigla {
+    font-size: 14px;
+  }
+  .tirilla-f__nombre {
+    font-size: 8px;
+    width: 90px;
+  }
+  .tirilla-f__divider {
+    margin: 0 12px;
+  }
+  .tirilla-f__arrow {
+    width: 28px;
+    height: 28px;
+    font-size: 22px;
+  }
+  .tirilla-f__carousel {
+    gap: 14px;
+  }
+  .tirilla-f__item--carousel {
+    flex: 0 0 90px;
+  }
+  .tirilla-f__logo-wrap--carousel {
+    width: 90px;
+    height: 46px;
+  }
+  .tirilla-f__svg-logo--carousel {
+    width: 86px;
+    height: 42px;
+  }
+  .tirilla-f__svg-logo--carousel svg {
+    max-width: 86px;
+    max-height: 42px;
+  }
+  .tirilla-f__sigla--carousel {
+    font-size: 13px;
+  }
+  .tirilla-f__nombre--carousel {
+    font-size: 7px;
+    width: 98px;
+  }
+}
+
+/* ── Tablet: 768–1023px ──────────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Header */
+  .hdr-govbar {
+    height: 44px;
+    padding: 3px 0;
+  }
+  .hdr-govbar__govco-logo {
+    height: 38px;
+  }
+  .hdr-main {
+    padding: 14px 0;
+  }
+  .hdr-main__inner {
+    padding: 0 20px;
+    gap: 16px;
+  }
+  .hdr-main__min-logo {
+    height: 72px;
+  }
+  .hdr-main__social {
+    display: none;
+  }
+  .hdr-main__mapa {
+    display: none;
+  }
+  .hdr-nav__inner {
+    padding: 0 12px;
+    overflow-x: auto;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+  }
+  .hdr-nav__link {
+    font-size: 11px;
+    padding: 8px 8px;
+    white-space: nowrap;
+  }
+  /* TirillaF */
+  .tirilla-f__titles {
+    padding: 0 16px 3px;
+  }
+  .tirilla-f__title-fixed {
+    width: 284px;
+    font-size: 8px;
+  }
+  .tirilla-f__title-carousel {
+    font-size: 8px;
+  }
+  .tirilla-f__inner {
+    height: 100px;
+    padding: 0 12px;
+  }
+  .tirilla-f__fixed {
+    gap: 5px;
+  }
+  .tirilla-f__item {
+    flex: 0 0 66px;
+  }
+  .tirilla-f__logo-wrap {
+    width: 66px;
+    height: 24px;
+  }
+  .tirilla-f__svg-logo {
+    width: 62px;
+    height: 20px;
+  }
+  .tirilla-f__svg-logo svg {
+    max-width: 62px;
+    max-height: 20px;
+  }
+  .tirilla-f__sigla {
+    font-size: 11px;
+  }
+  .tirilla-f__nombre {
+    font-size: 7px;
+    width: 72px;
+  }
+  .tirilla-f__divider {
+    margin: 0 10px;
+  }
+  .tirilla-f__arrow {
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
+  }
+  .tirilla-f__carousel {
+    gap: 10px;
+  }
+  .tirilla-f__item--carousel {
+    flex: 0 0 72px;
+  }
+  .tirilla-f__logo-wrap--carousel {
+    width: 72px;
+    height: 36px;
+  }
+  .tirilla-f__svg-logo--carousel {
+    width: 68px;
+    height: 32px;
+  }
+  .tirilla-f__svg-logo--carousel svg {
+    max-width: 68px;
+    max-height: 32px;
+  }
+  .tirilla-f__sigla--carousel {
+    font-size: 11px;
+  }
+  .tirilla-f__nombre--carousel {
+    font-size: 6.5px;
+    width: 78px;
+  }
+  /* Footer */
+  .footer-min__inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 28px 0;
+    padding: 0 20px;
+  }
+  .footer-min__logos-col {
+    border-right: none;
+    padding-right: 0;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+    grid-column: 1 / -1;
+  }
+  .footer-min__col {
+    padding: 0 16px;
+  }
+  /* Accesibilidad */
+  .acc-bar {
+    gap: 5px;
+    padding: 6px 5px;
+  }
+  .acc-bar__btn {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE — layout vertical: fija arriba · carrusel abajo
+   L ≤ 767px · M ≤ 375px · S ≤ 320px
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Mobile base: ≤ 767px ───────────────────────────────────── */
+@media (max-width: 767px) {
+  /* ── Prevenir scroll horizontal ── */
+  .page-layout {
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  .hdr-govbar {
+    height: 36px;
+    padding: 2px 0;
+  }
+  .hdr-govbar__govco-logo {
+    height: 28px;
+  }
+  .hdr-govbar__inner {
+    padding: 0 12px;
+  }
+  .hdr-main {
+    padding: 8px 0;
+  }
+  .hdr-main__inner {
+    padding: 0 12px;
+    gap: 8px;
+  }
+  .hdr-main__min-logo {
+    height: 48px;
+  }
+  .hdr-main__search {
+    display: none;
+  }
+  .hdr-main__social {
+    display: none;
+  }
+  .hdr-main__mapa {
+    display: none;
+  }
+  .hdr-main__burger {
+    display: flex;
+  }
+
+  /* Nav: oculta por defecto, desplegable al abrir hamburger */
+  .hdr-nav {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .hdr-nav--open {
+    max-height: 400px;
+  }
+  .hdr-nav__inner {
+    padding: 4px 8px 8px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 2px;
+    overflow-x: unset;
+    justify-content: flex-start;
+  }
+  .hdr-nav__link {
+    font-size: 13px;
+    padding: 10px 12px;
+    white-space: nowrap;
+    border-radius: 6px;
+    width: 100%;
+  }
+
+  /* ── Accesibilidad — barra horizontal en la parte inferior ── */
+  .acc-bar {
+    top: auto;
+    bottom: 0;
+    right: 50%;
+    transform: translateX(50%);
+    flex-direction: row;
+    border-radius: 10px 10px 0 0;
+    padding: 5px 8px;
+    gap: 6px;
+    box-shadow: 0 -3px 16px rgba(0, 0, 0, 0.25);
+  }
+  .acc-bar__btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+  }
+
+  /* ── Placeholders ── */
+  .page-placeholder {
+    min-height: 180px;
+    padding-top: 32px;
+  }
+  .page-version-sep {
+    min-height: 100px;
+    padding: 20px 0 16px;
+  }
+
+  /* ── TirillaF — layout vertical ── */
+  .tirilla-f {
+    border-top: 1px solid #e8e4f4;
+    border-bottom: 1px solid #e8e4f4;
+  }
+  .tirilla-f--dark {
+    border-color: rgba(210, 180, 255, 0.15);
+  }
+  .tirilla-f__titles {
+    display: none;
+  }
+
+  .tirilla-f__inner {
+    flex-direction: column;
+    height: auto;
+    padding: 0;
+  }
+
+  /* sección fija */
+  .tirilla-f__fixed-wrap {
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+    padding-bottom: 14px;
+  }
+  .tirilla-f__mobile-label {
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: rgba(160, 130, 210, 0.6);
+    padding: 14px 0 10px;
+  }
+  .tirilla-f--dark .tirilla-f__mobile-label {
+    color: rgba(210, 180, 255, 0.75);
+  }
+
+  /* logos fijos — distribuidos en todo el ancho */
+  .tirilla-f__fixed {
+    flex-shrink: unset;
+    width: 100%;
+    justify-content: space-around;
+    gap: 0;
+    padding: 0 8px;
+  }
+  .tirilla-f__item {
+    flex: 0 0 auto;
+  }
+  .tirilla-f__logo-wrap {
+    width: 64px;
+    height: 36px;
+  }
+  .tirilla-f__svg-logo {
+    width: 60px;
+    height: 32px;
+  }
+  .tirilla-f__svg-logo svg {
+    max-width: 60px;
+    max-height: 32px;
+  }
+  .tirilla-f__sigla {
+    font-size: 14px;
+    letter-spacing: 0.5px;
+  }
+  .tirilla-f__nombre {
+    font-size: 6.5px;
+    width: 68px;
+    top: calc(100% + 4px);
+  }
+
+  /* divisor horizontal */
+  .tirilla-f__divider {
+    width: 80%;
+    height: 1px;
+    align-self: center;
+    background: linear-gradient(to right, transparent, #c5bedd 30%, #c5bedd 70%, transparent);
+    margin: 6px 0;
+  }
+  .tirilla-f--dark .tirilla-f__divider {
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(210, 180, 255, 0.5) 30%,
+      rgba(210, 180, 255, 0.5) 70%,
+      transparent
+    );
+  }
+
+  /* sección carrusel */
+  .tirilla-f__carousel-section {
+    flex-direction: column;
+    align-items: center;
+    height: auto;
+    width: 100%;
+    flex: unset;
+  }
+  .tirilla-f__carousel-wrap {
+    width: 100%;
+    height: auto;
+    flex: unset;
+    min-width: unset;
+    gap: 0;
+  }
+  .tirilla-f__arrow {
+    display: none;
+  }
+  .tirilla-f__carousel {
+    gap: 16px;
+    height: 76px;
+    padding: 8px 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* scroll-snap solo en versión estática (no interfiere con auto-scroll) */
+  .tirilla-f--static .tirilla-f__carousel {
+    scroll-snap-type: x proximity;
+  }
+  .tirilla-f__item--carousel {
+    flex: 0 0 80px;
+  }
+  .tirilla-f--static .tirilla-f__item--carousel {
+    scroll-snap-align: center;
+  }
+  .tirilla-f__logo-wrap--carousel {
+    width: 80px;
+    height: 48px;
+  }
+  .tirilla-f__svg-logo--carousel {
+    width: 76px;
+    height: 44px;
+  }
+  .tirilla-f__svg-logo--carousel svg {
+    max-width: 76px;
+    max-height: 44px;
+  }
+  .tirilla-f__sigla--carousel {
+    font-size: 14px;
+  }
+  .tirilla-f__nombre--carousel {
+    font-size: 6.5px;
+    width: 84px;
+  }
+
+  /* sin hover persistente en touch */
+  @media (hover: none) {
+    .tirilla-f__item--carousel:hover .tirilla-f__logo-wrap--carousel {
+      transform: none;
+    }
+    .tirilla-f__item--carousel:hover .tirilla-f__svg-logo--carousel {
+      color: inherit;
+      filter: none;
+    }
+    .tirilla-f__item--carousel:hover .tirilla-f__sigla--carousel {
+      color: inherit;
+      text-shadow: none;
+    }
+    .tirilla-f__item--carousel:hover .tirilla-f__nombre--carousel {
+      color: transparent;
+    }
+  }
+
+  /* ── Footer ── */
+  .footer-min {
+    padding: 24px 0 70px;
+    overflow-x: hidden;
+  }
+  .footer-min__inner {
+    grid-template-columns: 1fr !important;
+    gap: 20px 0;
+    padding: 0 16px;
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .footer-min__logos-col {
+    border-right: none;
+    padding-right: 0;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    flex-direction: column;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .footer-min__logos-row {
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .footer-min__govco-img {
+    height: 28px;
+  }
+  .footer-min__co-img {
+    height: 44px;
+  }
+  .footer-min__social {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .footer-min__social-link svg {
+    width: 18px;
+    height: 18px;
+  }
+  .footer-min__col {
+    padding: 0;
+    border-right: none;
+    max-width: 100%;
+  }
+  .footer-min__col h4 {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  .footer-min__nombre {
+    font-size: 13px;
+    overflow-wrap: break-word;
+  }
+  .footer-min__dir,
+  .footer-min__col p,
+  .footer-min__col a {
+    font-size: 11.5px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+  }
+  .footer-min__copyright {
+    font-size: 11px;
+    padding-top: 12px;
+  }
+}
+
+/* ── Mobile M: ≤ 375px ──────────────────────────────────────── */
+@media (max-width: 375px) {
+  .tirilla-f__logo-wrap {
+    width: 58px;
+    height: 32px;
+  }
+  .tirilla-f__svg-logo {
+    width: 54px;
+    height: 28px;
+  }
+  .tirilla-f__svg-logo svg {
+    max-width: 54px;
+    max-height: 28px;
+  }
+  .tirilla-f__sigla {
+    font-size: 13px;
+  }
+  .tirilla-f__carousel {
+    height: 70px;
+    gap: 14px;
+    padding: 6px 14px;
+  }
+  .tirilla-f__item--carousel {
+    flex: 0 0 72px;
+  }
+  .tirilla-f__logo-wrap--carousel {
+    width: 72px;
+    height: 42px;
+  }
+  .tirilla-f__svg-logo--carousel {
+    width: 68px;
+    height: 38px;
+  }
+  .tirilla-f__svg-logo--carousel svg {
+    max-width: 68px;
+    max-height: 38px;
+  }
+  .tirilla-f__sigla--carousel {
+    font-size: 13px;
+  }
+}
+
+/* ── Mobile S: ≤ 320px ──────────────────────────────────────── */
+@media (max-width: 320px) {
+  .hdr-main__min-logo {
+    height: 42px;
+  }
+  .hdr-nav__link {
+    font-size: 10px;
+    padding: 6px 7px;
+  }
+  .tirilla-f__mobile-label {
+    font-size: 8px;
+    letter-spacing: 1.2px;
+    padding: 10px 0 8px;
+  }
+  .tirilla-f__logo-wrap {
+    width: 52px;
+    height: 28px;
+  }
+  .tirilla-f__svg-logo {
+    width: 48px;
+    height: 24px;
+  }
+  .tirilla-f__svg-logo svg {
+    max-width: 48px;
+    max-height: 24px;
+  }
+  .tirilla-f__sigla {
+    font-size: 11px;
+  }
+  .tirilla-f__nombre {
+    font-size: 6px;
+    width: 56px;
+  }
+  .tirilla-f__carousel {
+    height: 64px;
+    gap: 12px;
+    padding: 6px 10px;
+  }
+  .tirilla-f__item--carousel {
+    flex: 0 0 64px;
+  }
+  .tirilla-f__logo-wrap--carousel {
+    width: 64px;
+    height: 36px;
+  }
+  .tirilla-f__svg-logo--carousel {
+    width: 60px;
+    height: 32px;
+  }
+  .tirilla-f__svg-logo--carousel svg {
+    max-width: 60px;
+    max-height: 32px;
+  }
+  .tirilla-f__sigla--carousel {
+    font-size: 11px;
+  }
+  .tirilla-f__nombre--carousel {
+    font-size: 6px;
+    width: 68px;
+  }
+  .page-placeholder {
+    min-height: 140px;
+  }
+  .page-version-sep {
+    min-height: 80px;
+  }
+  .footer-min__govco-img {
+    height: 24px;
+  }
+  .footer-min__co-img {
+    height: 38px;
+  }
+  .footer-min__col h4 {
+    font-size: 11px;
+  }
+  .footer-min__nombre {
+    font-size: 12px;
+  }
+  .footer-min__dir,
+  .footer-min__col p,
+  .footer-min__col a {
+    font-size: 11px;
+  }
+}

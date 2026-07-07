@@ -1,0 +1,36 @@
+# syntax=docker/dockerfile:1
+# ---------------------------------------------------------------------------
+# Imagen de aplicacion para el paquete server/ (Express 4 + TypeScript).
+# Estrategia: multi-stage (build con toolchain, runtime minimo), usuario no-root,
+# capas de dependencias cacheables y healthcheck contra GET /api/health.
+# PRODUCCION: pinnear por digest -> node:22-bookworm-slim@sha256:<...>
+# Node 22 es LTS; verifica el LTS vigente (Node 24 pasa a Active LTS oct-2025).
+# ---------------------------------------------------------------------------
+ARG NODE_VERSION=22
+
+FROM node:${NODE_VERSION}-bookworm-slim AS deps
+WORKDIR /app
+# Copiar solo manifiestos primero: la capa de node_modules se cachea si no cambian
+COPY package.json package-lock.json ./
+RUN npm ci
+
+FROM node:${NODE_VERSION}-bookworm-slim AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npm run build           # tsc -> dist/  (aborta el build si hay error de tipos)
+RUN npm prune --omit=dev    # deja solo dependencias de produccion en node_modules
+
+FROM node:${NODE_VERSION}-bookworm-slim AS runtime
+ENV NODE_ENV=production
+WORKDIR /app
+# La imagen oficial node:* ya trae el usuario 'node' (uid 1000) sin privilegios
+COPY --from=build --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/dist ./dist
+COPY --from=build --chown=node:node /app/package.json ./package.json
+USER node
+EXPOSE 3000
+# fetch() es nativo en Node 18+; reusamos el endpoint de salud del server
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+CMD ["node", "dist/index.js"]

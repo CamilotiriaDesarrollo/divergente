@@ -1,0 +1,48 @@
+# Espejo GitLab CI del pipeline de la pirámide (equivalente a ci.yml de GitHub Actions).
+# Necesario en la línea gobierno, donde el código se entrega en GitLab institucional (F6).
+# Variables sensibles: definidas como CI/CD variables "protected + masked" en el proyecto.
+stages: [lint, test, e2e]
+
+default:
+  image: node:22
+  cache:
+    key: { files: [package-lock.json] }
+    paths: [.npm/]
+  before_script:
+    - npm ci --cache .npm --prefer-offline
+
+lint:
+  stage: lint
+  script:
+    - npm run lint
+    - npm run format:check
+
+# BASE + MEDIO: unit + integración con cobertura, en cada push/MR.
+test-unit-integracion:
+  stage: test
+  script:
+    - npm run test:coverage
+  coverage: '/Lines\s*:\s*(\d+\.?\d*)%/' # captura el % de cobertura para el badge
+  artifacts:
+    when: always
+    paths: ['**/coverage/']
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+
+# CIMA: E2E solo en la rama por defecto (evita frenar cada MR).
+e2e:
+  stage: e2e
+  image: mcr.microsoft.com/playwright:v1.50.0-jammy # fija la versión a la del package.json
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  variables:
+    BASE_URL: $BASE_URL
+    OIDC_TEST_USER: $OIDC_TEST_USER
+    OIDC_TEST_PASSWORD: $OIDC_TEST_PASSWORD
+  script:
+    - npm run test:e2e
+  artifacts:
+    when: always
+    paths: ['playwright-report/']

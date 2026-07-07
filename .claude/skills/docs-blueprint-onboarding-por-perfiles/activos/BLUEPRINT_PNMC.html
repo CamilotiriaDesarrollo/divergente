@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blueprint — Entorno Virtual PNMC · Mapa total de la plataforma</title>
+<style>
+  :root{
+    --morado:#291242; --morado2:#4a2a6e; --verde:#00DA5E; --verde2:#0a8a44;
+    --gris:#f4f2f8; --texto:#2b2b35; --linea:#cfc6e0; --azul:#1565c0;
+    --ambar:#8a6d00; --rojo:#b3261e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Segoe UI',Arial,sans-serif;color:var(--texto);background:#fff;line-height:1.55;}
+  .pagina{max-width:1060px;margin:0 auto;padding:0 30px 70px;}
+  header{background:var(--morado);color:#fff;padding:46px 30px 38px;text-align:center;}
+  header .sub{color:var(--verde);font-weight:700;text-transform:uppercase;font-size:.78rem;letter-spacing:.2em;margin-bottom:8px;}
+  header h1{font-size:1.85rem;}
+  header p{max-width:800px;margin:14px auto 0;color:#e8e2f2;font-size:.97rem;}
+  nav{background:var(--morado2);position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+  nav .iz{max-width:1060px;margin:0 auto;display:flex;flex-wrap:wrap;justify-content:center;}
+  nav a{color:#fff;text-decoration:none;font-size:.78rem;padding:10px 13px;letter-spacing:.03em;}
+  nav a:hover{background:var(--morado);color:var(--verde);}
+  h2{color:var(--morado);margin:50px 0 8px;font-size:1.35rem;border-bottom:3px solid var(--verde);display:inline-block;padding-bottom:4px;}
+  h3{color:var(--morado2);margin:24px 0 8px;font-size:1.05rem;}
+  p{margin:8px 0;}
+  .nota{font-size:.88rem;color:#555;margin:4px 0 14px;}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.88rem;}
+  th{background:var(--morado);color:#fff;text-align:left;padding:9px 10px;}
+  td{padding:8px 10px;border-bottom:1px solid #e3dded;vertical-align:top;}
+  tr:nth-child(even) td{background:var(--gris);}
+  a{color:var(--azul);}
+  code{background:#efe9f7;border-radius:4px;padding:1px 6px;font-size:.84em;color:var(--morado);}
+  pre{background:#1d1430;color:#d9f7e6;border-radius:8px;padding:14px 16px;font-size:.8rem;overflow-x:auto;margin:10px 0;}
+  .tarjetas{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:16px 0;}
+  .tarjeta{background:var(--gris);border-left:5px solid var(--verde);border-radius:6px;padding:14px 16px;}
+  .tarjeta h4{color:var(--morado);margin-bottom:6px;font-size:.95rem;}
+  .tarjeta p,.tarjeta li{font-size:.85rem;}
+  .tarjeta ul{margin:6px 0 0 18px;}
+  .alerta{border-left-color:var(--rojo);} .alerta h4{color:var(--rojo);}
+  .ambar{border-left-color:var(--ambar);} .ambar h4{color:var(--ambar);}
+  .azul{border-left-color:var(--azul);} .azul h4{color:var(--azul);}
+  .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:22px 0;}
+  .kpi div{background:var(--morado);color:#fff;border-radius:8px;padding:14px;text-align:center;}
+  .kpi strong{display:block;font-size:1.45rem;color:var(--verde);}
+  .kpi span{font-size:.74rem;}
+  .ruta{background:#fff;border:1px solid var(--linea);border-top:6px solid var(--verde);border-radius:8px;padding:16px;}
+  .ruta h4{color:var(--morado);font-size:1rem;margin-bottom:8px;}
+  .ruta ol{margin-left:18px;font-size:.85rem;}
+  .ruta ol li{margin-bottom:5px;}
+  .paso{display:flex;gap:14px;margin:14px 0;align-items:flex-start;}
+  .paso .n{flex:0 0 34px;height:34px;background:var(--morado);color:var(--verde);border-radius:50%;text-align:center;line-height:34px;font-weight:700;}
+  .paso .c{flex:1;}
+  .paso .c h4{color:var(--morado);font-size:.98rem;margin-bottom:3px;}
+  .paso .c p{font-size:.88rem;margin:3px 0;}
+  .flujo{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:12px 0;font-size:.78rem;}
+  .estado{background:var(--morado2);color:#fff;border-radius:14px;padding:4px 12px;}
+  .estado.fin{background:var(--verde2);}
+  .estado.neg{background:#8e3b46;}
+  .flujo .sep{color:#9b8fb5;font-weight:700;}
+  .chip{display:inline-block;background:var(--morado);color:#fff;border-radius:12px;padding:1px 10px;font-size:.7rem;margin-right:6px;vertical-align:middle;}
+  .chip.v{background:var(--verde2);} .chip.r{background:var(--rojo);} .chip.am{background:var(--ambar);}
+  footer{background:var(--gris);text-align:center;padding:22px;font-size:.78rem;color:#666;margin-top:60px;}
+  dl{margin:10px 0;}
+  dt{font-weight:700;color:var(--morado);margin-top:10px;font-size:.9rem;}
+  dd{margin-left:0;font-size:.86rem;color:#444;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="sub">Plan Nacional de Música para la Convivencia · Ministerio de las Culturas, las Artes y los Saberes</div>
+  <h1>BLUEPRINT — Entorno Virtual PNMC</h1>
+  <p>Mapa total de la plataforma: qué es, cómo está construida, cómo se despliega, dónde está cada documento
+     y cuál es la ruta de trabajo. Diseñado para que <strong>cualquier persona</strong> — directiva, gestora,
+     desarrolladora o de tecnología — encuentre aquí su punto de entrada.</p>
+</header>
+
+<nav><div class="iz">
+  <a href="#rutas">Tu ruta</a>
+  <a href="#que-es">Qué es</a>
+  <a href="#funcional">Módulos y roles</a>
+  <a href="#arquitectura">Arquitectura</a>
+  <a href="#despliegue">Despliegue</a>
+  <a href="#documentos">Documentos</a>
+  <a href="#plan">Plan de trabajo</a>
+  <a href="#normativa">Normativa</a>
+  <a href="#estado">Estado</a>
+  <a href="#glosario">Glosario</a>
+</div></nav>
+
+<div class="pagina">
+
+  <div class="kpi">
+    <div><strong>5</strong><span>módulos públicos</span></div>
+    <div><strong>6</strong><span>roles de acceso</span></div>
+    <div><strong>7</strong><span>estados del flujo editorial</span></div>
+    <div><strong>1.122</strong><span>municipios DIVIPOLA</span></div>
+    <div><strong>16</strong><span>scripts de base de datos</span></div>
+    <div><strong>6</strong><span>políticas ministeriales</span></div>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="rutas">1 · Elige tu ruta según quién eres</h2>
+  <p class="nota">Este blueprint sirve a todos los perfiles. Empieza por la tarjeta que te describa.</p>
+  <div class="tarjetas">
+    <div class="ruta">
+      <h4>👔 Directivo / no técnico</h4>
+      <ol>
+        <li>Lee <a href="#que-es">Qué es la plataforma</a> (2 min)</li>
+        <li>Mira los <a href="#funcional">módulos y roles</a></li>
+        <li>Abre la <a href="PLAN_DE_TRABAJO_PNMC.html">presentación del plan de trabajo</a></li>
+        <li>Revisa el <a href="#estado">estado actual</a> y los puntos de decisión</li>
+      </ol>
+    </div>
+    <div class="ruta">
+      <h4>📋 Gestor / líder funcional</h4>
+      <ol>
+        <li>Lee <a href="#funcional">módulos, roles y flujo editorial</a></li>
+        <li>Consulta los manuales funcionales en el <a href="#documentos">mapa documental</a> (mapa, portal, roles)</li>
+        <li>Revisa el <a href="#normativa">marco normativo</a> que rige el proyecto</li>
+        <li>Usa las <a href="#despliegue">credenciales de prueba</a> para navegar la plataforma</li>
+      </ol>
+    </div>
+    <div class="ruta">
+      <h4>💻 Desarrollador</h4>
+      <ol>
+        <li>Lee la <a href="#arquitectura">arquitectura</a> y abre el <a href="ARQUITECTURA_PNMC.html">anexo completo</a></li>
+        <li>Sigue el <a href="#despliegue">paso a paso de despliegue local</a></li>
+        <li>Estudia la documentación técnica del repositorio (<a href="#documentos">mapa documental</a>)</li>
+        <li>Trabaja con los checklists del <a href="PLAN_DE_TRABAJO_PNMC.md">plan detallado</a></li>
+      </ol>
+    </div>
+    <div class="ruta">
+      <h4>🖥️ Tecnología / operaciones</h4>
+      <ol>
+        <li>Revisa <a href="#arquitectura">arquitectura</a> y <a href="#despliegue">despliegue</a></li>
+        <li>Lee el <a href="#normativa">marco normativo</a>: gestión de cambios, seguridad, recepción</li>
+        <li>Identifica los <a href="#estado">conflictos abiertos</a> que requieren decisión de la OTI</li>
+        <li>Consulta el plan de fases 5–6 (infraestructura, certificación, producción)</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="que-es">2 · Qué es la plataforma (en lenguaje simple)</h2>
+  <p>El <strong>Entorno Virtual del PNMC</strong> es la plataforma digital del Plan Nacional de Música para la
+     Convivencia. Su propósito es <strong>cartografiar y fortalecer el ecosistema musical de Colombia</strong>:</p>
+  <div class="tarjetas">
+    <div class="tarjeta"><h4>Visibilizar</h4><p>Un mapa interactivo de todo el país muestra escuelas de música, festivales,
+      lutieres (constructores de instrumentos) y redes de investigación, municipio por municipio.</p></div>
+    <div class="tarjeta"><h4>Co-gestionar</h4><p>Las entidades aliadas (secretarías de cultura, universidades, redes de
+      escuelas) administran la información de su propia red con cuentas y permisos delimitados.</p></div>
+    <div class="tarjeta"><h4>Participar</h4><p>Cualquier gestor cultural o ciudadano puede registrar su proceso musical,
+      reclamar registros históricos que le pertenecen y mantener su información actualizada.</p></div>
+  </div>
+  <p>Toda la información pasa por un <strong>flujo de revisión del Ministerio</strong> antes de publicarse, con trazabilidad
+     completa de quién hizo qué y cuándo (auditoría inmutable), y protección de datos personales según la Ley 1581 de 2012.</p>
+
+  <!-- ================================================================ -->
+  <h2 id="funcional">3 · Módulos y roles</h2>
+
+  <h3>Módulos del portal público</h3>
+  <table>
+    <tr><th>Módulo</th><th>Qué ofrece</th></tr>
+    <tr><td><strong>Inicio + CMS</strong></td><td>Página principal con textos editables desde la consola (sin tocar código), carrusel de las 8 estrategias territoriales del Plan.</td></tr>
+    <tr><td><strong>Mapa ecosistémico</strong></td><td>Geovisor con 3 vistas: marcadores agrupados por tipo, mapa de calor de densidad musical y coropletas por departamento. Filtros por departamento/municipio (estándar DIVIPOLA del DANE).</td></tr>
+    <tr><td><strong>Agenda</strong></td><td>Calendario nacional de festivales y eventos, con filtros y geolocalización directa en el mapa.</td></tr>
+    <tr><td><strong>Noticias</strong></td><td>Comunicados y crónicas con contenido enriquecido renderizado de forma segura.</td></tr>
+    <tr><td><strong>Editorial</strong></td><td>Biblioteca digital: libros, metodologías y partituras del Ministerio con buscador y filtros.</td></tr>
+    <tr><td><strong>Galería</strong></td><td>Álbumes fotográficos de los encuentros territoriales.</td></tr>
+    <tr><td><strong>Participación</strong></td><td>Registro ciudadano con asistente de 3 pasos y <em>motor de reclamación</em>: el sistema cruza el municipio del usuario con los registros históricos "huérfanos" para que reclame los suyos en vez de duplicarlos.</td></tr>
+  </table>
+
+  <h3>Los 6 roles (control de acceso RBAC)</h3>
+  <table>
+    <tr><th>Rol</th><th>Consola</th><th>Qué puede hacer</th></tr>
+    <tr><td><strong>Webmaster</strong></td><td>/admin</td><td>Administración total: usuarios, textos del CMS, catálogos, auditoría, importaciones.</td></tr>
+    <tr><td><strong>Gestor interno</strong></td><td>/admin</td><td>Moderación del Ministerio: aprueba/rechaza registros, solicita ajustes campo por campo, controla duplicados y calidad.</td></tr>
+    <tr><td><strong>Aliado administrador</strong></td><td>/colaboradores</td><td>Lidera una entidad aliada: KPIs de su red, gestiona su equipo, exporta datos de su red.</td></tr>
+    <tr><td><strong>Aliado editor</strong></td><td>/colaboradores</td><td>Crea y edita registros de su entidad y los envía a revisión.</td></tr>
+    <tr><td><strong>Aliado lector</strong></td><td>/colaboradores</td><td>Solo lectura de los registros de su entidad.</td></tr>
+    <tr><td><strong>Colaborador externo</strong></td><td>/colaboradores</td><td>Ciudadano/gestor independiente: registra y reclama sus propios procesos culturales.</td></tr>
+  </table>
+  <p class="nota">Regla de oro: los aliados solo ven y tocan lo de su propia entidad; los datos de contacto personales se
+     enmascaran en todo lo público (Habeas Data, Ley 1581 de 2012).</p>
+
+  <h3>El flujo editorial (corazón de la gobernanza)</h3>
+  <div class="flujo">
+    <span class="estado">borrador</span><span class="sep">→</span>
+    <span class="estado">en_revision</span><span class="sep">→</span>
+    <span class="estado">ajustes_solicitados</span><span class="sep">↔</span>
+    <span class="estado">aprobado</span><span class="sep">→</span>
+    <span class="estado fin">publicado</span>
+    <span class="sep">|</span>
+    <span class="estado neg">rechazado</span>
+    <span class="sep">|</span>
+    <span class="estado neg">archivado</span>
+  </div>
+  <p class="nota">Cada transición queda grabada en una bitácora inmutable (quién, cuándo, estado anterior y nuevo,
+     observaciones) que ningún usuario puede modificar ni borrar.</p>
+
+  <!-- ================================================================ -->
+  <h2 id="arquitectura">4 · Arquitectura técnica</h2>
+  <p>Monorepo con tres piezas + documentación. Arquitectura <strong>N capas orientada al dominio</strong>,
+     con los límites internos ya definidos para una evolución futura a servicios independientes.
+     <strong>Detalle completo con diagramas: <a href="ARQUITECTURA_PNMC.html">ARQUITECTURA_PNMC.html</a></strong></p>
+  <table>
+    <tr><th>Pieza</th><th>Tecnología</th><th>Qué contiene</th></tr>
+    <tr><td><code>pnmc-web/</code></td><td>React 19 · Vite · Tailwind CSS · Leaflet</td><td>Portal público, geovisor y consolas. ~26.000 líneas organizadas por dominios funcionales con carga diferida por ruta.</td></tr>
+    <tr><td><code>pnmc-api/</code></td><td>C# · .NET (Minimal APIs) · EF Core</td><td>4 proyectos: <strong>Api</strong> (16 módulos de endpoints bajo <code>/api/v1</code>), <strong>Contracts</strong> (DTOs), <strong>Domain</strong> (36 entidades), <strong>Infrastructure</strong> (acceso a datos, seguridad, auditoría). Autenticación por cookie, rate limiting, middlewares de seguridad.</td></tr>
+    <tr><td><code>pnmc-database/</code></td><td>SQL Server (T-SQL)</td><td>16 scripts versionados e idempotentes: 9 de esquema + 7 de semillas (catálogos, DIVIPOLA completo, datos de prueba) + procedimiento de métricas del mapa.</td></tr>
+    <tr><td><code>docs/</code></td><td>Markdown</td><td>Manual maestro + 11 sub-documentos (técnico, funcional, gobernanza, backlog). Ver <a href="#documentos">mapa documental</a>.</td></tr>
+  </table>
+
+  <h3>Cómo fluye una petición</h3>
+  <pre>Navegador → Frontend (React) → API REST /api/v1
+   → Middlewares (contexto → cabeceras de seguridad → errores → CORS → rate limit → autenticación → autorización)
+   → Módulo del dominio (ej. Gobernanza) → EF Core → SQL Server
+   → DTO de respuesta → Frontend renderiza</pre>
+
+  <h3>Los 16 módulos del API por dominio</h3>
+  <p class="nota">Catálogo (festivales, escuelas, lutieres, organizaciones, espacios, DIVIPOLA) · Mapa (TopoJSON + resúmenes) ·
+     Agenda · Noticias · Editorial · Galería · Participación · Autenticación administrativa · Autenticación externa ·
+     Gobernanza de registros (estados, reclamaciones, duplicados) · Aliados (administración + portal) · Entidades ·
+     Datos administrativos (importaciones, monitor) · Notificaciones · Compatibilidad legada.</p>
+
+  <!-- ================================================================ -->
+  <h2 id="despliegue">5 · Despliegue local — paso a paso verificado</h2>
+  <p class="nota">Esta es la ruta probada en Windows. Una persona nueva puede tener la plataforma corriendo en ~30 minutos.</p>
+
+  <div class="paso"><div class="n">0</div><div class="c">
+    <h4>Prerrequisitos</h4>
+    <p>• <strong>Node.js</strong> 18+ · <strong>SDK de .NET 10</strong> · <strong>SQL Server LocalDB</strong> (o SQL Server/Express) · <strong>sqlcmd</strong> · Git</p>
+    <p>Instalables con: <code>winget install OpenJS.NodeJS.LTS Microsoft.DotNet.SDK.10 Microsoft.Sqlcmd</code></p>
+  </div></div>
+
+  <div class="paso"><div class="n">1</div><div class="c">
+    <h4>Clonar el repositorio</h4>
+    <pre>git clone https://github.com/edder-jimenez/Entorno_Virtual_PNMC.git</pre>
+  </div></div>
+
+  <div class="paso"><div class="n">2</div><div class="c">
+    <h4>Crear y sembrar la base de datos</h4>
+    <p>Iniciar LocalDB y crear la base <code>PNMC_LOCAL</code>; luego ejecutar los <strong>16 scripts en orden</strong>
+       (9 de <code>pnmc-database/schema/</code> + 7 de <code>pnmc-database/seed/</code>, orden alfabético por versión)
+       y al final <code>EXEC dbo.sp_ActualizarMetricasMapa;</code></p>
+    <p><span class="chip am">Nota</span>En SQL Server 2016, el script <code>V20260525_02</code> puede fallar en un renombrado de columna
+       bloqueado por una restricción CHECK sobre <code>RolEnEntidad</code>: se elimina la restricción, se renombra a <code>RolAliado</code>
+       y se re-ejecuta el script (es idempotente).</p>
+  </div></div>
+
+  <div class="paso"><div class="n">3</div><div class="c">
+    <h4>Arrancar el API conectado a la base</h4>
+    <pre>$env:ASPNETCORE_ENVIRONMENT = 'Local'
+$env:ASPNETCORE_URLS = 'http://localhost:8080'
+$env:AZURE_SQL_CONNECTION_STRING = 'Server=(localdb)\MSSQLLocalDB;Initial Catalog=PNMC_LOCAL;Integrated Security=True;Encrypt=False;TrustServerCertificate=True;'
+$env:Database__SeedBootstrapUsers = 'true'   # crea las cuentas admin y gestor al arrancar
+cd Entorno_Virtual_PNMC/pnmc-api
+dotnet run --project src/PNMC.Api --no-launch-profile</pre>
+    <p><span class="chip am">Nota</span>Las cuentas de aliados y colaborador externo (usuarios 4–7) no las crea ningún script:
+       se insertan en la tabla <code>Usuarios</code> reutilizando el hash de contraseña del admin, y después se re-ejecuta el
+       seed 07 (datos de moderación), que las referencia.</p>
+  </div></div>
+
+  <div class="paso"><div class="n">4</div><div class="c">
+    <h4>Arrancar el frontend</h4>
+    <pre>cd Entorno_Virtual_PNMC/pnmc-web
+npm install
+npm run dev</pre>
+    <p>El archivo <code>pnmc-web/.env</code> debe tener <code>VITE_API_BASE_URL=</code> (vacío) para que las llamadas
+       pasen por el proxy de Vite — así funciona en cualquier puerto sin problemas de CORS.</p>
+  </div></div>
+
+  <div class="paso"><div class="n">5</div><div class="c">
+    <h4>Verificar</h4>
+    <table>
+      <tr><th>Qué</th><th>URL</th></tr>
+      <tr><td>Plataforma</td><td><a href="http://localhost:5175">http://localhost:5175</a> (o el puerto que anuncie Vite)</td></tr>
+      <tr><td>Consola administrativa</td><td><a href="http://localhost:5175/admin">http://localhost:5175/admin</a></td></tr>
+      <tr><td>Portal colaboradores</td><td><a href="http://localhost:5175/colaboradores">http://localhost:5175/colaboradores</a></td></tr>
+      <tr><td>API · salud</td><td><a href="http://localhost:8080/health/live">http://localhost:8080/health/live</a></td></tr>
+      <tr><td>API · Swagger</td><td><a href="http://localhost:8080/swagger">http://localhost:8080/swagger</a></td></tr>
+    </table>
+    <p><strong>Atajo:</strong> el script <a href="Iniciar-PNMC.ps1">Iniciar-PNMC.ps1</a> ejecuta los pasos 3 y 4 automáticamente
+       (LocalDB + API + frontend) después de cualquier reinicio.</p>
+  </div></div>
+
+  <h3>Credenciales de desarrollo (solo entorno local)</h3>
+  <table>
+    <tr><th>Cuenta</th><th>Rol</th><th>Contraseña</th><th>Entra por</th></tr>
+    <tr><td>admin@pnmc.local</td><td>Webmaster</td><td rowspan="4" style="text-align:center;vertical-align:middle"><code>admin</code></td><td>/admin</td></tr>
+    <tr><td>gestor@pnmc.local</td><td>Gestor interno (moderación)</td><td>/admin</td></tr>
+    <tr><td>aliado-admin@ · aliado-editor@ · aliado-lector@pnmc.local</td><td>Aliados</td><td>/colaboradores</td></tr>
+    <tr><td>externo@pnmc.local</td><td>Colaborador externo</td><td>/colaboradores</td></tr>
+  </table>
+  <p class="nota">⚠️ La documentación original del repositorio menciona contraseñas tipo <code>pnmc-master</code>: está desactualizada — la contraseña vigente de todas las cuentas demo es <code>admin</code>. Estas cuentas se eliminan o rotan antes de cualquier ambiente compartido.</p>
+
+  <!-- ================================================================ -->
+  <h2 id="documentos">6 · Mapa documental — todos los documentos con su enlace</h2>
+  <p class="nota">Los enlaces son relativos a esta carpeta de trabajo. Los archivos <code>.md</code> se visualizan mejor en
+     VS Code o en cualquier visor de Markdown; los <code>.html</code> abren directo en el navegador.</p>
+
+  <h3>📐 Documentos del proyecto (generados en esta planeación)</h3>
+  <table>
+    <tr><th>Documento</th><th>Para quién</th><th>Contenido</th></tr>
+    <tr><td><a href="BLUEPRINT_PNMC.html"><strong>BLUEPRINT_PNMC.html</strong></a></td><td>Todos</td><td>Este documento — el mapa total.</td></tr>
+    <tr><td><a href="PLAN_DE_TRABAJO_PNMC.html">PLAN_DE_TRABAJO_PNMC.html</a></td><td>Directivos / presentación</td><td>Plan de trabajo visual: fases, calendario, riesgos, criterios de éxito.</td></tr>
+    <tr><td><a href="PLAN_DE_TRABAJO_PNMC.md">PLAN_DE_TRABAJO_PNMC.md</a></td><td>Equipo de trabajo</td><td>Plan detallado v3: 6 fases con tiempos, entregables y checklists normativos por ítem.</td></tr>
+    <tr><td><a href="ARQUITECTURA_PNMC.html">ARQUITECTURA_PNMC.html</a></td><td>Técnicos / OTI</td><td>Diagramas de arquitectura actual y objetivo, análisis de evolución a servicios, ruta de migración.</td></tr>
+    <tr><td><a href="Iniciar-PNMC.ps1">Iniciar-PNMC.ps1</a></td><td>Desarrolladores</td><td>Script de arranque del entorno local en Windows.</td></tr>
+  </table>
+
+  <h3>⚖️ Biblioteca normativa (políticas del Ministerio en versión operativa)</h3>
+  <table>
+    <tr><th>Documento</th><th>Código</th><th>Checklist</th></tr>
+    <tr><td><a href="normativa/README.md"><strong>Índice maestro + conflictos abiertos</strong></a></td><td>—</td><td>Tabla de las 6 políticas y los 5 conflictos que requieren decisión de la OTI</td></tr>
+    <tr><td><a href="normativa/P-GSI-003_diseno_desarrollo_implementacion_SI.md">Diseño, Desarrollo e Implementación de SI</a></td><td>P-GSI-003</td><td>C1–C18</td></tr>
+    <tr><td><a href="normativa/DI-GSI-010_lineamientos_recepcion_desarrollo.md">Lineamientos de Recepción y Desarrollo</a></td><td>DI-GSI-010</td><td>L1–L14</td></tr>
+    <tr><td><a href="normativa/M-GSI-002_manual_arquitectura_estandar_codificacion.md">Manual de Arquitectura y Codificación</a></td><td>M-GSI-002</td><td>A1–A10</td></tr>
+    <tr><td><a href="normativa/P-GSI-004_gestion_de_cambios.md">Procedimiento de Gestión de Cambios</a></td><td>P-GSI-004</td><td>G1–G4</td></tr>
+    <tr><td><a href="normativa/M-GSI-003_manual_gestion_cambios.md">Manual de Gestión de Cambios</a></td><td>M-GSI-003</td><td>G5–G9</td></tr>
+    <tr><td><a href="normativa/M-GSI-005_manual_politicas_seguridad_informacion.md">Manual de Políticas de Seguridad</a></td><td>M-GSI-005</td><td>S1–S8 (parcial)</td></tr>
+  </table>
+
+  <h3>📚 Documentación del repositorio de la plataforma</h3>
+  <table>
+    <tr><th>Documento</th><th>Tema</th></tr>
+    <tr><td><a href="Entorno_Virtual_PNMC/README.md">README del monorepo</a></td><td>Estructura, comandos, variables de entorno, flujo de datos y estados</td></tr>
+    <tr><td><a href="Entorno_Virtual_PNMC/docs/DOCUMENTACION_PROYECTO.md"><strong>Manual Maestro</strong></a></td><td>Punto de entrada de toda la documentación del repositorio</td></tr>
+    <tr><td><a href="Entorno_Virtual_PNMC/docs/tecnico/guia_instalacion.md">Guía de instalación</a></td><td>Requisitos, variables, arranque (escrita para macOS/Linux; el paso a paso Windows está en este blueprint)</td></tr>
+    <tr><td><a href="Entorno_Virtual_PNMC/docs/tecnico/arquitectura_y_estructura.md">Arquitectura y estructura</a></td><td>Organización del código y modelo de base de datos</td></tr>
+    <tr><td><a href="Entorno_Virtual_PNMC/docs/tecnico/auditoria_y_notificaciones.md">Auditoría y notificaciones</a></td><td>Bitácora inmutable y buzón interno</td></tr>
+    <tr><td><a href="Entorno_Virtual_PNMC/docs/funcional/mapa_ecosistemico.md">Mapa ecosistémico</a></td><td>Capas del geovisor, DIVIPOLA, registro de coordenadas</td></tr>
+    <tr><td><a href="Entorno_Virtual_PNMC/docs/funcional/portal_publico_y_cms.md">Portal público y CMS</a></td><td>Páginas públicas y motor de textos dinámicos</td></tr>
+    <tr><td><a href="Entorno_Virtual_PNMC/docs/gobernanza/manual_roles.md">Manual de roles (RBAC)</a></td><td>Matriz completa de permisos por rol</td></tr>
+    <tr><td><a href="Entorno_Virtual_PNMC/docs/gobernanza/convenios_y_privilegios.md">Convenios y Habeas Data</a></td><td>Base legal y enmascaramiento de datos personales</td></tr>
+    <tr><td><a href="Entorno_Virtual_PNMC/docs/gobernanza/motor_reclamaciones.md">Motor de reclamaciones</a></td><td>Flujo de registros huérfanos paso a paso</td></tr>
+    <tr><td><a href="Entorno_Virtual_PNMC/docs/backlog/deuda_tecnica.md">Deuda técnica</a></td><td>Refactorizaciones pendientes priorizadas</td></tr>
+    <tr><td><a href="Entorno_Virtual_PNMC/docs/backlog/seguridad_y_hardening.md">Seguridad y hardening</a></td><td>Vulnerabilidades conocidas y plan de blindaje</td></tr>
+    <tr><td><a href="Entorno_Virtual_PNMC/docs/backlog/accesibilidad_wcag.md">Accesibilidad WCAG</a></td><td>Checklist de conformidad AA</td></tr>
+    <tr><td><a href="Entorno_Virtual_PNMC/pnmc-database/README.md">README de base de datos</a></td><td>Convenciones y orden de ejecución de scripts</td></tr>
+  </table>
+
+  <!-- ================================================================ -->
+  <h2 id="plan">7 · Plan de trabajo — resumen ejecutivo</h2>
+  <p>14–16 semanas de ejecución en 6 fases. Detalle completo: <a href="PLAN_DE_TRABAJO_PNMC.md">plan extendido</a> ·
+     <a href="PLAN_DE_TRABAJO_PNMC.html">versión presentación</a>.</p>
+  <table>
+    <tr><th>Fase</th><th>Semanas</th><th>Qué se logra</th></tr>
+    <tr><td><strong>F0 · Gobernanza y formalización</strong></td><td>1–2</td><td>Radicación del proyecto ante el Ministerio (F-GSI-007), viabilidad, líderes designados, <strong>mesa de homologación tecnológica (GO/NO-GO #1)</strong>, decisión de infraestructura.</td></tr>
+    <tr><td><strong>F1 · Protocolos de ingeniería</strong></td><td>1–2</td><td>Rama principal protegida, revisión de código obligatoria, integración continua con pruebas automáticas.</td></tr>
+    <tr><td><strong>F2 · Entorno unificado</strong></td><td>2–3</td><td>Entorno reproducible multiplataforma con base de datos completa; documentación alineada con el código.</td></tr>
+    <tr><td><strong>F3 · Seguridad y estabilización</strong></td><td>3–6</td><td>Componentes vulnerables eliminados, autenticación conforme a política ministerial, auditoría completa, refactor del módulo administrativo, pruebas de la matriz de roles.</td></tr>
+    <tr><td><strong>F4 · Funcionalidad real</strong></td><td>6–10</td><td>Correo transaccional real, portales separados, reclamaciones de extremo a extremo, reportes ejecutivos.</td></tr>
+    <tr><td><strong>F5 · Infraestructura y cambios</strong></td><td>8–12</td><td>Ambientes desarrollo→certificación→producción, alta disponibilidad, respaldos, gestión de cambios operativa con el Ministerio.</td></tr>
+    <tr><td><strong>F6 · Calidad y producción</strong></td><td>12–16</td><td>Accesibilidad AA evidenciada, pruebas de carga, <em>ethical hacking</em> aprobado, capacitación, <strong>go-live como cambio formal (GO/NO-GO #2)</strong> y entrega documental completa.</td></tr>
+  </table>
+
+  <!-- ================================================================ -->
+  <h2 id="normativa">8 · Marco normativo — la directriz del proyecto</h2>
+  <p>Todo el trabajo se rige por 6 políticas del Ministerio convertidas en <strong>63 ítems de cumplimiento verificables</strong>,
+     revisados en cada hito. Lo esencial:</p>
+  <div class="tarjetas">
+    <div class="tarjeta"><h4>Formalización (P-GSI-003)</h4><p>El proyecto se radica con formato F-GSI-007, el comité técnico da la viabilidad,
+      se designan líder funcional y técnico, y el código resultante es propiedad del Ministerio.</p></div>
+    <div class="tarjeta"><h4>Recepción técnica (DI-GSI-010)</h4><p>Inicio de sesión institucional, auditoría con IP y firma de eventos,
+      <em>ethical hacking</em> obligatorio, alta disponibilidad, paquete documental completo de entrega.</p></div>
+    <div class="tarjeta"><h4>Desarrollo seguro (M-GSI-002)</h4><p>Metodología SDL + OWASP Top 10, política estricta de contraseñas y
+      sesiones, estándares de código. La arquitectura en capas del sistema cumple lo exigido.</p></div>
+    <div class="tarjeta"><h4>Gestión de cambios (P-GSI-004 / M-GSI-003)</h4><p>Todo paso a producción es un cambio formal con plan de
+      reversa, aprobado por el comité semanal. Congelamiento de cambios del 15 de diciembre al 15 de enero.</p></div>
+  </div>
+  <div class="tarjetas">
+    <div class="tarjeta alerta"><h4>⚠️ Decisión crítica pendiente</h4><p>El manual de arquitectura (2021) referencia tecnologías hoy fuera de
+      soporte. Se requiere <strong>acta de homologación tecnológica</strong> de la OTI que reconozca la pila moderna como cumplimiento
+      equivalente — es el primer GO/NO-GO del plan. Detalle: <a href="normativa/README.md">conflictos abiertos</a>.</p></div>
+    <div class="tarjeta ambar"><h4>Pendiente documental</h4><p>Del Manual de Seguridad (M-GSI-005) solo se tiene la carátula:
+      hay que solicitar el cuerpo completo a la OTI para cerrar la alineación de seguridad.</p></div>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="estado">9 · Estado actual de la plataforma</h2>
+  <div class="tarjetas">
+    <div class="tarjeta"><h4>✅ Funciona hoy (verificado en local)</h4>
+      <ul>
+        <li>Portal completo con datos: 35 festivales, 35 escuelas, lutieres, organizaciones</li>
+        <li>Mapa con 1.122 municipios DIVIPOLA y métricas por departamento</li>
+        <li>Agenda, noticias, editorial y galería pobladas</li>
+        <li>Consola de moderación con 16 entidades en los 7 estados del flujo</li>
+        <li>Login y RBAC operativos para los 6 roles</li>
+        <li>23/23 pruebas del frontend en verde; API compila sin advertencias</li>
+      </ul>
+    </div>
+    <div class="tarjeta ambar"><h4>🔧 Pendiente (en el plan)</h4>
+      <ul>
+        <li>Correo real (hoy simulado) — Fase 4</li>
+        <li>Componente de hojas de cálculo con vulnerabilidad conocida — Fase 3</li>
+        <li>Refactor del módulo administrativo (7.900 líneas en un archivo) — Fase 3</li>
+        <li>Autenticación conforme a política ministerial (sesiones, contraseñas, SSO) — Fase 3</li>
+        <li>Accesibilidad AA con evidencia — Fase 6</li>
+        <li>Formalización ante el Ministerio — Fase 0 (no iniciada)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="glosario">10 · Glosario para no desarrolladores</h2>
+  <dl>
+    <dt>Frontend</dt><dd>La parte visual de la plataforma: lo que ves y tocas en el navegador.</dd>
+    <dt>Backend / API</dt><dd>El "motor" invisible: recibe las peticiones del frontend, aplica las reglas de negocio y consulta la base de datos. API es la puerta de entrada formal a ese motor.</dd>
+    <dt>Base de datos / SQL Server</dt><dd>Donde vive toda la información (registros, usuarios, textos). SQL Server es el producto de base de datos que usa la plataforma.</dd>
+    <dt>Semillas (seeds)</dt><dd>Scripts que llenan la base de datos con información inicial: catálogos, municipios y datos de prueba.</dd>
+    <dt>DIVIPOLA</dt><dd>La codificación oficial del DANE para departamentos y municipios de Colombia. Garantiza que "Bogotá" sea siempre el código 11001, sin errores de escritura.</dd>
+    <dt>RBAC (roles y permisos)</dt><dd>Sistema que decide qué puede hacer cada usuario según su rol (los 6 de la sección 3).</dd>
+    <dt>Flujo editorial</dt><dd>El camino que recorre un registro desde que alguien lo crea (borrador) hasta que el Ministerio lo publica, con revisión y trazabilidad.</dd>
+    <dt>Registro huérfano</dt><dd>Información histórica de censos anteriores que está en el mapa pero no tiene un responsable que la actualice; los colaboradores pueden "reclamarla".</dd>
+    <dt>CMS</dt><dd>Editor que permite cambiar los textos del portal desde la consola administrativa, sin programar.</dd>
+    <dt>Auditoría inmutable</dt><dd>Bitácora que registra cada acción importante y que no se puede alterar — exigencia para entidades públicas.</dd>
+    <dt>Despliegue</dt><dd>El proceso de instalar y dejar funcionando la plataforma en un computador o servidor.</dd>
+    <dt>Go-live</dt><dd>El día en que la plataforma sale a producción para el público real.</dd>
+    <dt>Ethical hacking</dt><dd>Prueba de seguridad donde especialistas intentan vulnerar el sistema de forma controlada para encontrar y corregir fallas antes que un atacante real.</dd>
+    <dt>OTI / GGSTI</dt><dd>Oficina de Tecnologías de la Información del Ministerio — el equipo técnico que guía, aprueba y recibe la plataforma.</dd>
+  </dl>
+
+</div>
+
+<footer>
+  Blueprint del Entorno Virtual del Plan Nacional de Música para la Convivencia · Ministerio de las Culturas, las Artes y los Saberes<br>
+  Documento vivo — se actualiza con cada hito del plan de trabajo · Versión 1 — 10/06/2026
+</footer>
+
+</body>
+</html>

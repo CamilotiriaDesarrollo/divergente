@@ -1,0 +1,66 @@
+# CI para monorepo client (Vite+React 19) / server (Express+TS) o Next.js 16.
+# Copiar a .github/workflows/ci.yml en la RAIZ del repo. Sin secretos.
+# Portable a GitLab CI: ver ../gitlab/gitlab-ci-node.yml y ../PORTABILIDAD-github-actions-a-gitlab-ci.md
+#
+# NOTA DE VERSIONES (verificar antes de usar; pueden haber avanzado tras el cutoff):
+#   - Node 22 LTS. Next.js 16 / React 19 exigen Node >= 20.9. Ajusta si el proyecto fija otra.
+#   - actions/* estan en v4 (checkout, setup-node, upload-artifact). Revisa si hay v5.
+#   - En linea gobierno, ancla cada action a su SHA completo (cadena de suministro, DI-GSI-010).
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Cancela ejecuciones previas del mismo ref: no gasta minutos ni deja jobs colgando.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Minimo privilegio del GITHUB_TOKEN (por defecto es demasiado amplio).
+permissions:
+  contents: read
+
+jobs:
+  client:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client   # en Next.js single-package, poner "." y borrar el job server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci                        # requiere package-lock.json commiteado
+      - run: npm run lint
+      - run: npm run format:check          # gate Prettier (ver skill qa-kit-eslint9-prettier-monorepo)
+      - run: npm test --if-present -- --run # vitest en modo no-watch; --if-present no falla si no hay tests
+      - run: npm run build                 # "tsc && vite build": el tipado es gate de despliegue
+      - uses: actions/upload-artifact@v4
+        with:
+          name: client-dist
+          path: client/dist
+          retention-days: 7               # evidencia del build para la compuerta G3 (DI-GSI-010)
+
+  server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check --if-present  # mismas 4 etapas que client; --if-present no falla si el server no lo define
+      - run: npm test --if-present
+      - run: npm run build

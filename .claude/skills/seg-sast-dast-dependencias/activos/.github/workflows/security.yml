@@ -1,0 +1,129 @@
+# .github/workflows/security.yml
+# Pipeline de seguridad (SAST + dependencias + secretos + DAST) para la LÍNEA PRIVADA
+# (Next.js 16/React 19 y monorepo client Vite+React / server Express+TS, deploy Vercel).
+# La línea de gobierno usa GitLab institucional -> ver activos/.gitlab-ci-security.yml.
+#
+# N0 (sin verificar aún en proyecto propio): las VERSIONES de actions y de reglas cambian.
+# Antes de usar, confirma la última versión de cada action y fija por SHA si el repo es de gobierno.
+name: seguridad
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: "0 6 * * 1" # lunes 06:00 UTC — regla de fábrica: auditar dependencias SEMANALMENTE, no solo al final
+
+permissions:
+  contents: read
+  security-events: write # necesario para subir SARIF a la pestaña Security
+  pull-requests: read
+  actions: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1) DEPENDENCIAS npm — cubre client/ y server/ del monorepo por separado
+  # ---------------------------------------------------------------------------
+  dependencias-npm:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        paquete: [client, server] # AJUSTAR a la estructura real (Next.js monolito: usar ["."])
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: npm audit (${{ matrix.paquete }})
+        working-directory: ${{ matrix.paquete }}
+        # --audit-level=high => solo rompe ante HIGH/CRITICAL. Para gobierno sube a "moderate".
+        run: |
+          if [ -f package-lock.json ]; then
+            npm audit --audit-level=high
+          else
+            echo "sin package-lock.json en ${{ matrix.paquete }}, se omite"
+          fi
+
+  # ---------------------------------------------------------------------------
+  # 2) DEPENDENCY REVIEW — bloquea PRs que INTRODUCEN dependencias vulnerables
+  #    (nativo GitHub, gratis en repos públicos; en privados requiere GHAS)
+  # ---------------------------------------------------------------------------
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          # Deniega licencias incompatibles con contratación estatal si aplica:
+          # deny-licenses: AGPL-3.0, GPL-3.0
+
+  # ---------------------------------------------------------------------------
+  # 3) SAST — Semgrep (PORTABLE a GitLab; no depende de licencia GHAS)
+  # ---------------------------------------------------------------------------
+  sast-semgrep:
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep # confirmar tag vigente; fijar por digest en gobierno
+    steps:
+      - uses: actions/checkout@v4
+      - name: semgrep ci
+        # p/owasp-top-ten + p/javascript + p/react. SEMGREP_APP_TOKEN es opcional.
+        run: semgrep ci --config p/owasp-top-ten --config p/javascript --sarif --output semgrep.sarif || true
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+
+  # ---------------------------------------------------------------------------
+  # 4) SAST profundo — CodeQL (js/ts + python). OJO: repos PRIVADOS requieren
+  #    GitHub Advanced Security (licencia de pago). Si no la hay, borra este job
+  #    y confía en Semgrep. Ver gotcha en SKILL.md.
+  # ---------------------------------------------------------------------------
+  codeql:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript] # añadir "python" si hay scripts de datos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v3
+
+  # ---------------------------------------------------------------------------
+  # 5) SECRETOS — gitleaks (evita credenciales sembradas; complementa
+  #    seg-gestion-secretos-keyvault)
+  # ---------------------------------------------------------------------------
+  secretos-gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # historia completa para escanear commits previos
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ---------------------------------------------------------------------------
+  # 6) DAST — OWASP ZAP baseline contra la app CORRIENDO (preview de Vercel o
+  #    URL de staging). Solo programado: DAST necesita un objetivo desplegado.
+  #    NO reemplaza el ethical hacking contractual (DI-GSI-010 L7), lo alimenta.
+  # ---------------------------------------------------------------------------
+  dast-zap:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ZAP Baseline
+        uses: zaproxy/action-baseline@v0.12.0 # confirmar versión vigente
+        with:
+          target: "${ZAP_TARGET_URL}" # p.ej. https://mi-preview.vercel.app
+          rules_file_name: ".zap/rules.tsv" # ver activos/zap-rules.tsv
+          cmd_options: "-a" # incluye alertas informativas

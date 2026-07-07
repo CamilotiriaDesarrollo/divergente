@@ -1,0 +1,48 @@
+# .github/workflows/contract.yml
+# Valida el contrato OpenAPI en cada PR: lint + cambios incompatibles + tipos al dia + tests de contrato.
+# Portable a GitLab CI: ver activos/workflows/gitlab-ci-contract.yml.
+name: contract
+on:
+  pull_request:
+    paths: ['contracts/**', '.spectral.yaml', 'client/src/types/api.d.ts']
+  push:
+    branches: [main]
+    paths: ['contracts/**']
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # oasdiff necesita el historico para comparar contra main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Instalar herramientas
+        run: npm i -g @stoplight/spectral-cli@^6 openapi-typescript@^7 @stoplight/prism-cli@^5 wait-on
+
+      # 1. Lint del contrato
+      - name: Lint OpenAPI (Spectral)
+        run: spectral lint contracts/openapi.yaml --ruleset .spectral.yaml --fail-severity=error
+
+      # 2. Deteccion de cambios INCOMPATIBLES vs main (bloquea el PR si hay ruptura no versionada)
+      - name: Breaking changes (oasdiff)
+        uses: oasdiff/oasdiff-action/breaking@v0.0.21   # fijar el tag; verificar el ultimo release
+        with:
+          base: 'git:main:contracts/openapi.yaml'
+          revision: contracts/openapi.yaml
+          fail-on: ERR
+
+      # 3. Los tipos TS compartidos estan regenerados (frontend y contrato no divergen)
+      - name: Verificar tipos generados
+        run: |
+          openapi-typescript contracts/openapi.yaml -o /tmp/api.d.ts
+          diff -u client/src/types/api.d.ts /tmp/api.d.ts \
+            || (echo "::error::Tipos desactualizados. Corre scripts/generar-tipos.ps1 y commitea." && exit 1)
+
+      # 4. Tests de contrato contra un mock Prism levantado desde el propio contrato
+      - name: Tests de contrato
+        run: |
+          prism mock contracts/openapi.yaml -p 4010 &
+          wait-on tcp:4010
+          npm run test:contract

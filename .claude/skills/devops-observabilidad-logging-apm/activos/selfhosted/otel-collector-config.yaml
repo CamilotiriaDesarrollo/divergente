@@ -1,0 +1,43 @@
+# activos/selfhosted/otel-collector-config.yaml
+# Colector OpenTelemetry: recibe OTLP de las apps (.NET/Node/Python) y reparte
+# logs -> Loki, trazas -> Tempo, métricas -> Prometheus. Punto único de entrada del stack on-prem.
+# N0 (sin verificar aún en proyecto propio): confirma nombres de receivers/exporters con la doc vigente del Collector.
+receivers:
+  otlp:
+    protocols:
+      grpc: { endpoint: 0.0.0.0:4317 }
+      http: { endpoint: 0.0.0.0:4318 }
+
+processors:
+  batch: {}
+  # Redacción defensiva en el pipeline: no dejes pasar atributos con datos personales (Habeas Data, Ley 1581).
+  attributes/redaccion:
+    actions:
+      - { key: password, action: delete }
+      - { key: cedula, action: delete }
+      - { key: correo, action: delete }
+      - { key: authorization, action: delete }
+
+exporters:
+  otlphttp/loki:                 # Logs -> Loki
+    endpoint: http://loki:3100/otlp
+  otlp/tempo:                    # Trazas -> Tempo
+    endpoint: tempo:4317
+    tls: { insecure: true }
+  prometheus:                    # Métricas -> Prometheus (scrape en :8889)
+    endpoint: 0.0.0.0:8889
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [attributes/redaccion, batch]
+      exporters: [otlp/tempo]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus]
+    logs:
+      receivers: [otlp]
+      processors: [attributes/redaccion, batch]
+      exporters: [otlphttp/loki]

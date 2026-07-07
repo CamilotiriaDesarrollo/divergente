@@ -1,0 +1,47 @@
+# .github/workflows/a11y.yml
+# Gate de accesibilidad automatizada. Corre en PR y sube la evidencia como artefacto
+# (insumo del informe DI-GSI-010 exigido en la compuerta G5 / Fase F5 Endurecimiento).
+# Portable a GitLab CI: ver activo a11y.gitlab.yml (misma secuencia de pasos).
+name: a11y
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  accesibilidad:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      # 1) axe a nivel componente (rapido, sin navegador)
+      - run: npm run test:a11y:unit --if-present
+
+      # 2) app en background + axe E2E por ruta
+      - name: Levantar app
+        run: npm run start & npx wait-on http://localhost:${PORT:-3000}
+        env:
+          PORT: "3000"
+      - name: axe E2E (Playwright)
+        run: npx playwright test activos/axe.playwright.spec.ts
+        env:
+          BASE_URL: "http://localhost:3000"
+          A11Y_OUT: "reportes-a11y"
+
+      # 3) Lighthouse CI (score accessibility) — no bloquea el merge por si solo,
+      #    pero deja el reporte HTML archivable.
+      - name: Lighthouse CI
+        run: npx lhci autorun --config=activos/lighthouserc.json
+        continue-on-error: true
+
+      - name: Publicar evidencia
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencia-a11y
+          path: reportes-a11y/

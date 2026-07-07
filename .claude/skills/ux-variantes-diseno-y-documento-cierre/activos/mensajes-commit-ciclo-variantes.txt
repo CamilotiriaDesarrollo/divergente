@@ -1,0 +1,41 @@
+PLANTILLAS DE MENSAJE DE COMMIT — CICLO DE VARIANTES
+Extraídas verbatim de dos commits reales del portafolio. Commits
+convencionales (feat/fix/docs) redactados en español, con bullets que
+enumeran QUÉ variantes se construyeron o QUÉ se eliminó (métricas del cleanup).
+
+═══════════════════════════════════════════════════════════════════
+1) COMMIT DE CONSTRUCCIÓN DE VARIANTES
+   Real: Interfase Pagina Inicial — commit c2f8a36
+   Se listan las variantes creadas y el concepto de cada una.
+═══════════════════════════════════════════════════════════════════
+
+feat: bocetos V1/V2/V3 del portal — tarjetas, filtro de perfil y tira de sistemas
+
+- Tres bocetos interactivos (flip 3D, positivo/negativo, acordeón horizontal)
+- Paleta morada institucional con degradés por card en V1
+- Filtro 'Eres un' con 5 perfiles (ciudadano, agente, investigador, gestor, colaborador)
+- Tira inferior de logos con efecto apagado/prendido y descripción al hover
+- Datos enriquecidos de 40+ plataformas con descripciones
+- Header compartido 'Descubre la Cultura' en las tres versiones
+
+
+═══════════════════════════════════════════════════════════════════
+2) COMMIT DE CIERRE / LIMPIEZA (sólo DESPUÉS de aprobar la ganadora)
+   Real: Interfase Sistemas — commit 1a8bd99
+   Enumera qué se conserva, qué variantes se borran y qué doc de cierre
+   se añade. Las métricas (qué componentes eliminados) van en los bullets.
+═══════════════════════════════════════════════════════════════════
+
+feat: portal limpio para repositorio público
+
+- Conserva únicamente TirillaF (dock magnético + carrusel infinito)
+- Elimina variantes no usadas: tirillas A, B, C, D, G y estática
+- Actualiza logos institucionales y añade logo Banco de la República
+- Añade docs/LINEAMIENTOS-DE-DESARROLLO.md con políticas técnicas,
+  convenciones de código y contexto institucional (DI-GSI-010)
+- Actualiza README a la URL del nuevo repositorio
+
+Nota de evidencia: en este commit se borraron los .tsx de las variantes
+perdedoras (tirillaA/B/C/D/G/Static), PERO sus bloques CSS ('PROPUESTA A'..
+'PROPUESTA G') se dejaron intactos en client/src/index.css como referencia
+histórica. No borres el CSS en el mismo golpe.

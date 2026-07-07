@@ -1,0 +1,37 @@
+# Ruleset Spectral para el contrato OpenAPI de la Fabrica.
+# Uso: spectral lint contracts/openapi.yaml --ruleset .spectral.yaml --fail-severity=error
+# Requiere @stoplight/spectral-cli (probado con v6).
+extends: ["spectral:oas"]
+rules:
+  # Higiene minima exigida por la Fabrica:
+  operation-operationId: error          # todo endpoint con operationId estable (clave para codegen)
+  operation-operationId-unique: error
+  operation-tags: error                 # todo endpoint etiquetado
+  operation-description: warn
+  info-contact: warn
+  # Regla propia: cada operacion debe declarar al menos una respuesta de error 4xx/5xx.
+  operacion-con-respuesta-error:
+    description: Toda operacion debe declarar al menos una respuesta de error (4xx o 5xx).
+    severity: error
+    given: "$.paths[*][get,post,put,patch,delete].responses"
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          # al menos una clave que empiece por 4 o 5
+          anyOf:
+            - required: ["400"]
+            - required: ["401"]
+            - required: ["403"]
+            - required: ["404"]
+            - required: ["500"]
+  # Regla propia: la version NO va embebida en el path (va en el server /api/v{n}).
+  path-sin-version-embebida:
+    description: Los paths no deben contener v1/v2; la version vive en el server url.
+    severity: error
+    given: "$.paths[*]~"
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: "/v[0-9]+/"

@@ -1,0 +1,24 @@
+# .gitlab-ci.yml (equivalente portable para el GitLab institucional del gobierno)
+# Misma secuencia que a11y.github.yml. La linea de gobierno entrega en GitLab
+# institucional (ver FABRICA.md F6), por eso el pipeline debe existir en ambos.
+accesibilidad:
+  image: mcr.microsoft.com/playwright:v1.55.0-jammy # fija la version real que uses
+  stage: test
+  variables:
+    PORT: "3000"
+    BASE_URL: "http://localhost:3000"
+    A11Y_OUT: "reportes-a11y"
+  script:
+    - npm ci
+    - npm run test:a11y:unit --if-present
+    - npm run start & npx wait-on "http://localhost:$PORT"
+    - npx playwright test activos/axe.playwright.spec.ts
+    - npx lhci autorun --config=activos/lighthouserc.json || true
+  artifacts:
+    when: always
+    paths:
+      - reportes-a11y/
+    expire_in: 30 days
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

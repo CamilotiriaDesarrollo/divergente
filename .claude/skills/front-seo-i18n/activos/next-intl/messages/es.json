@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "home_title": "Inicio",
+    "home_description": "Descripción del sitio en español (máx. ~150 caracteres)."
+  },
+  "nav": {
+    "home": "Inicio",
+    "catalog": "Catálogo",
+    "about": "Acerca de"
+  },
+  "home": {
+    "heading": "Título principal",
+    "cta": "Explorar"
+  }
+}

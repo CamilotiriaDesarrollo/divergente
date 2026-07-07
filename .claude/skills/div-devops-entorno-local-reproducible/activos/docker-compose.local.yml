@@ -1,0 +1,32 @@
+# Entorno local reproducible — Postgres para la LÍNEA PRIVADA de Divergente.
+# Plantilla N0 (hermana divergente del docker-compose de SQL Server). Aún no
+# ejercitada en un proyecto propio: adapta nombres/volúmenes/versión antes de usar.
+#
+# Levantar:  docker compose -f docker-compose.local.yml up -d
+# Bajar:     docker compose -f docker-compose.local.yml down
+# Reset TOTAL (¡borra datos!):  docker compose -f docker-compose.local.yml down -v
+services:
+  db:
+    image: postgres:16-alpine        # imagen oficial; corre nativa en x86_64 y ARM (Apple Silicon)
+    container_name: divergente-postgres-local
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-divergente}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CAMBIA_ESTA_CLAVE_Local1!}
+      POSTGRES_DB: ${POSTGRES_DB:-divergente_local}
+    ports:
+      # Puerto del host tomado de POSTGRES_PORT (default 5433, NO estándar, para NO
+      # chocar con un Postgres del sistema en 5432). Dentro del contenedor sigue
+      # siendo 5432. Si cambias POSTGRES_PORT, actualiza también DATABASE_URL en .env.
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - divergente_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # pg_isready es el equivalente Postgres de "¿ya acepta conexiones?".
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-divergente} -d ${POSTGRES_DB:-divergente_local}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  divergente_pgdata:

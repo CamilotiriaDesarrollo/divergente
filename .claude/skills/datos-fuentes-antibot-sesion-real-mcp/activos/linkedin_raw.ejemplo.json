@@ -1,0 +1,16 @@
+{
+  "_comment": "Cosecha cruda de LinkedIn Jobs vía Chrome DevTools MCP. La produce la sesión MCP (Claude manejando el navegador logueado). La consume scripts/ingest_linkedin.py, que la normaliza y mergea en data/linkedin_latest.json. Se puede sobrescribir en cada sesión de cosecha.",
+  "cosechado_en": "2026-06-10",
+  "ofertas": [
+    {"jobId": "4407583575", "perfil_origen": "CT", "search_id": "LI-CT-01", "titulo": "Head Of Data Science & Credit Risk", "empresa": "FINN", "ubicacion": "América Latina (En remoto)", "url": "https://www.linkedin.com/jobs/view/4407583575/"},
+    {"jobId": "4425856852", "perfil_origen": "CT", "search_id": "LI-CT-01", "titulo": "Head of Data & Analytics", "empresa": "Global66", "ubicacion": "Bogotá, Distrito Capital, Colombia (Presencial)", "url": "https://www.linkedin.com/jobs/view/4425856852/"},
+    {"jobId": "4414037930", "perfil_origen": "CT", "search_id": "LI-CT-02", "titulo": "Gerente General", "empresa": "Ticketmaster", "ubicacion": "Colombia (Presencial)", "url": "https://www.linkedin.com/jobs/view/4414037930/"},
+    {"jobId": "4416858415", "perfil_origen": "CT", "search_id": "LI-CT-02", "titulo": "SEO Director, LatAm", "empresa": "WPP Media", "ubicacion": "Bogotá, Distrito Capital, Colombia (Híbrido)", "url": "https://www.linkedin.com/jobs/view/4416858415/"},
+    {"jobId": "4335778456", "perfil_origen": "CT", "search_id": "LI-CT-02", "titulo": "Global Creative Director", "empresa": "Ubiquity", "ubicacion": "Bogotá, Distrito Capital, Colombia (Presencial)", "url": "https://www.linkedin.com/jobs/view/4335778456/"},
+    {"jobId": "4401543157", "perfil_origen": "CT", "search_id": "LI-CT-02", "titulo": "Jefe de marca", "empresa": "Pepe Ganga", "ubicacion": "Bogotá, Distrito Capital, Colombia (Híbrido)", "url": "https://www.linkedin.com/jobs/view/4401543157/"},
+    {"jobId": "4425641834", "perfil_origen": "CT", "search_id": "LI-CT-02", "titulo": "Emergency Adviser Colombia Bogotá", "empresa": "ReliefWeb", "ubicacion": "Colombia (Presencial)", "url": "https://www.linkedin.com/jobs/view/4425641834/"},
+    {"jobId": "4399787692", "perfil_origen": "CT", "search_id": "LI-CT-02", "titulo": "Brand Head", "empresa": "Kellanova", "ubicacion": "Bogotá, Distrito Capital, Colombia (Presencial)", "url": "https://www.linkedin.com/jobs/view/4399787692/"},
+    {"jobId": "4409231137", "perfil_origen": "CT", "search_id": "LI-CT-02", "titulo": "Growth Marketing Director | LATAM", "empresa": "Backblaze", "ubicacion": "Colombia (En remoto)", "url": "https://www.linkedin.com/jobs/view/4409231137/"},
+    {"jobId": "4426000578", "perfil_origen": "CT", "search_id": "LI-CT-03", "titulo": "DIRECTOR TICS", "empresa": "OSC Top Solutions Group", "ubicacion": "Colombia (Híbrido)", "url": "https://www.linkedin.com/jobs/view/4426000578/"}
+  ]
+}

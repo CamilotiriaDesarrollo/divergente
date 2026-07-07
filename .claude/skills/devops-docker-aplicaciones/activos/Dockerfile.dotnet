@@ -1,0 +1,37 @@
+# syntax=docker/dockerfile:1
+# ---------------------------------------------------------------------------
+# Imagen de aplicacion .NET (linea gobierno colombiano). Arquitectura n-capas/DDD.
+# Estrategia: multi-stage, restore cacheable, runtime aspnet minimo, usuario no-root.
+# NORMATIVA: la entidad suele exigir version LTS. Hoy .NET 8 (soporte hasta nov-2026);
+# .NET 10 LTS disponible desde nov-2025 -> subir DOTNET_VERSION cuando la entidad lo
+# apruebe formalmente (gestion de cambios ITIL M-GSI-003). No usar STS (9.0) en gob.
+# El runtime aspnet NO trae curl/wget (superficie minima): el healthcheck se define
+# en el orquestador (compose/k8s) apuntando a /health del ASP.NET HealthCheck.
+# ---------------------------------------------------------------------------
+ARG DOTNET_VERSION=8.0
+
+FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS build
+WORKDIR /src
+# Copiar solo .sln y .csproj primero para cachear el restore por capa
+COPY ["*.sln", "./"]
+COPY ["src/Api/Api.csproj", "src/Api/"]
+COPY ["src/Application/Application.csproj", "src/Application/"]
+COPY ["src/Domain/Domain.csproj", "src/Domain/"]
+COPY ["src/Infrastructure/Infrastructure.csproj", "src/Infrastructure/"]
+RUN dotnet restore
+# Ahora el resto del codigo (esta capa se invalida al cambiar fuentes, no al restaurar)
+COPY . .
+RUN dotnet publish "src/Api/Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION} AS runtime
+WORKDIR /app
+ENV ASPNETCORE_URLS=http://+:8080 \
+    ASPNETCORE_ENVIRONMENT=Production \
+    DOTNET_RUNNING_IN_CONTAINER=true
+# aspnet:8.0+ incluye el usuario no-root 'app' (UID en $APP_UID, = 1654 en .NET 8)
+USER app
+EXPOSE 8080
+COPY --from=build --chown=app:app /app/publish .
+# La cadena de conexion a SQL Server llega por variable de entorno, NUNCA hardcodeada:
+#   ConnectionStrings__Default=Server=db,1433;Database=AppDb;User Id=...;TrustServerCertificate=True
+ENTRYPOINT ["dotnet", "Api.dll"]

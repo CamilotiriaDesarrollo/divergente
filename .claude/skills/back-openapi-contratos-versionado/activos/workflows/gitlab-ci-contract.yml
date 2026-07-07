@@ -1,0 +1,24 @@
+# Equivalente GitLab CI del contract.yml (linea institucional GitLab).
+# Pegar como job dentro del .gitlab-ci.yml del proyecto.
+contract:
+  image: node:20
+  variables:
+    GIT_DEPTH: 0            # historico completo para comparar contra main (equivale a fetch-depth:0)
+  rules:
+    - changes:
+        - contracts/**/*
+        - .spectral.yaml
+  script:
+    - npm i -g @stoplight/spectral-cli@^6 openapi-typescript@^7
+    # 1. Lint
+    - spectral lint contracts/openapi.yaml --ruleset .spectral.yaml --fail-severity=error
+    # 2. Breaking changes (binario oasdiff; en GitLab no hay Action, se instala el CLI).
+    #    El CLI NO resuelve refs git tipo "ref:path" (eso lo hace la Action de GitHub):
+    #    extraer la base con `git show` a un archivo y comparar archivo contra archivo.
+    - curl -sSfL https://raw.githubusercontent.com/oasdiff/oasdiff/main/install.sh | sh
+    - git fetch origin main
+    - git show origin/main:contracts/openapi.yaml > base-openapi.yaml
+    - oasdiff breaking base-openapi.yaml contracts/openapi.yaml --fail-on ERR
+    # 3. Tipos al dia
+    - openapi-typescript contracts/openapi.yaml -o /tmp/api.d.ts
+    - diff -u client/src/types/api.d.ts /tmp/api.d.ts

@@ -1,0 +1,19 @@
+{
+  "//": "pa11y-ci: barrido de URLs ya servidas. Ideal para la linea de gobierno .NET/Razor donde no hay suite Playwright, o para auditar un despliegue en Vercel. pa11y usa runners axe + htmlcs. Estandar WCAG2AA = NTC 5854 AA.",
+  "//uso": "npm i -D pa11y-ci pa11y-ci-reporter-html && npx pa11y-ci --config activos/.pa11yci.json",
+  "defaults": {
+    "standard": "WCAG2AA",
+    "runners": ["axe", "htmlcs"],
+    "timeout": 30000,
+    "chromeLaunchConfig": { "args": ["--no-sandbox"] },
+    "reporters": [
+      "cli",
+      ["pa11y-ci-reporter-html", { "fileName": "./reportes-a11y/pa11y.html" }]
+    ]
+  },
+  "urls": [
+    "${BASE_URL}/",
+    "${BASE_URL}/servicios",
+    { "url": "${BASE_URL}/tramite", "actions": ["wait for element #contenido to be visible"] }
+  ]
+}

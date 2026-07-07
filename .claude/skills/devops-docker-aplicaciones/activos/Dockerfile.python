@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+# ---------------------------------------------------------------------------
+# Imagen para jobs de datos/scraping (Python). Sirve como job batch (corre y
+# termina, ideal para tareas programadas) o como servicio de larga vida.
+# venv aislado en /opt/venv para separar deps del sistema. Usuario no-root.
+# Python 3.12-slim estable; 3.13 disponible desde oct-2024.
+# OJO scraping con navegador (Playwright): las deps de sistema del navegador
+# pesan mucho -> usa la imagen base mcr.microsoft.com/playwright/python:v1.xx
+# en vez de python:slim (ver Gotcha en la SKILL).
+# ---------------------------------------------------------------------------
+ARG PYTHON_VERSION=3.12
+
+FROM python:${PYTHON_VERSION}-slim AS build
+WORKDIR /app
+ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
+COPY requirements.txt ./
+RUN python -m venv /opt/venv && /opt/venv/bin/pip install -r requirements.txt
+
+FROM python:${PYTHON_VERSION}-slim AS runtime
+ENV PATH="/opt/venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+WORKDIR /app
+COPY --from=build /opt/venv /opt/venv
+COPY . .
+RUN useradd --create-home --uid 1000 appuser
+USER appuser
+# Job batch: corre una vez y termina. Cambia a servidor (uvicorn/gunicorn) si es API.
+# Secretos y credenciales de fuentes SIEMPRE por variable de entorno, nunca en la imagen.
+ENTRYPOINT ["python", "-m", "app.main"]

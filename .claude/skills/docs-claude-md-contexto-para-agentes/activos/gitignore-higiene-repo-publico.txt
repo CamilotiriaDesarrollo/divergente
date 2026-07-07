@@ -1,0 +1,19 @@
+# ORIGEN: líneas relevantes de 002 Desarrollos/Interfase Sistemas/.gitignore
+# (mismo patrón usado antes de publicar el repo público — commit "portal limpio para repositorio público").
+#
+# Propósito: separar el CONOCIMIENTO INTERNO de trabajo con IA de lo que se sube a GitHub.
+# Sin estas líneas, el CLAUDE.md (que puede citar infraestructura, credenciales de dev,
+# rutas internas y reglas de negocio) y la config local de Claude Code quedan expuestos.
+
+# --- Variables de entorno / secretos ---
+.env
+.env.local
+.env.*.local
+server/.env
+
+# --- Artefactos de trabajo con IA (NO publicar) ---
+CLAUDE.md
+.claude/
+
+# Nota: si el equipo QUIERE versionar el CLAUDE.md (repo privado interno), NO lo ignores;
+# esta regla es solo para repositorios públicos. Decide según la visibilidad del repo.
