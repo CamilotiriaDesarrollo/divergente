@@ -554,53 +554,6 @@ export default function Metodologias() {
         {/* Campo "miles de datos" — números que titilan detrás del hero */}
         <HeroDataField />
 
-        <h1
-          ref={titleRef}
-          style={{
-            position: "relative",
-            zIndex: 1,
-            margin: 0,
-            fontFamily: "var(--font-montserrat), sans-serif",
-            fontWeight: 300,
-            color: "#7cc9a7",
-            lineHeight: 1.08,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-          }}
-        >
-          <span
-            className="mt-reveal"
-            style={{
-              display: "block",
-              fontSize: "clamp(1.8rem, 5.6vw, 5rem)",
-              transitionDelay: "0.15s",
-            }}
-          >
-            {renderMeltText("Miles de datos", true)}
-          </span>
-          <span
-            className="mt-reveal"
-            style={{
-              display: "block",
-              fontSize: "clamp(1.3rem, 3vw, 2.6rem)",
-              margin: "0.12em 0 0.06em",
-              transitionDelay: "0.3s",
-            }}
-          >
-            {renderMeltText("no son más", true)}
-          </span>
-          <span
-            className="mt-reveal"
-            style={{
-              display: "block",
-              fontSize: "clamp(2.6rem, 9.5vw, 9.5rem)",
-              transitionDelay: "0.55s",
-            }}
-          >
-            {renderMeltText("Claridad", false)}
-          </span>
-        </h1>
-
         {/* Buda — en flujo normal, empuja hacia abajo; texto empieza al terminar la imagen */}
         <div
           aria-hidden
@@ -1178,29 +1131,6 @@ function HeroDataField() {
       ))}
     </div>
   );
-}
-
-/* Divide el texto en palabras y letras (.title-letter) para el melt/ruido.
-   noise=true marca las letras que laten como estática (.mt-noise). */
-function renderMeltText(text: string, noise: boolean) {
-  return text.split(" ").map((word, wi, arr) => (
-    <span key={wi} style={{ whiteSpace: "nowrap", display: "inline-block" }}>
-      {word.split("").map((ch, ci) => (
-        <span
-          key={ci}
-          className={`title-letter${noise ? " mt-noise" : ""}`}
-          style={{ display: "inline-block", willChange: "transform, opacity, filter" }}
-        >
-          {ch}
-        </span>
-      ))}
-      {wi < arr.length - 1 && (
-        <span aria-hidden style={{ display: "inline-block", width: "0.3em" }}>
-          &nbsp;
-        </span>
-      )}
-    </span>
-  ));
 }
 
 /* Los 3 párrafos del bloque "El Problema" — usados en los 3 demos de interacción */

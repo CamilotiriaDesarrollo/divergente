@@ -7,50 +7,69 @@ import { useEffect, useRef, useState } from "react";
 
 const NAV_ITEMS = [
   { label: "Analítica", scheme: "hover-analitica", href: "/analitica" },
-  { label: "Metodologías", scheme: "hover-metodologias", href: "/metodologias" },
-  { label: "Creatividad", scheme: "hover-creatividad", href: "/creatividad" },
+  { label: "Escuela", scheme: "hover-creatividad", href: "/escuela" },
   { label: "Servicios", scheme: "hover-portafolio", href: "/servicios" },
   { label: "Blog", scheme: "hover-blog", href: "/blog" },
 ] as const;
 
-const SCHEMES = NAV_ITEMS.map((n) => n.scheme);
-
-const ROUTE_TO_INDEX: Record<string, number> = {
-  "/analitica": 0,
-  "/metodologias": 1,
-  "/creatividad": 2,
-  "/servicios": 3,
-  "/blog": 4,
-};
-
-const LOGO_SRCS = [
-  "/logo-analitica.png",
-  "/logo-metodologias.png",
-  "/logo-creatividad.png",
-  "/logo-portafolio.png",
-  "/logo-blog.png",
+const SCHEMES = [
+  "hover-analitica",
+  "hover-metodologias",
+  "hover-creatividad",
+  "hover-portafolio",
+  "hover-blog",
 ] as const;
 
-const ROUTE_LABELS = [
-  "Analítica",
-  "Metodologías",
-  "Creatividad",
-  "Servicios",
-  "Blog",
+const ROUTES = [
+  {
+    base: "/analitica",
+    scheme: "hover-analitica",
+    logo: "/logo-analitica.png",
+    navIndex: 0,
+  },
+  {
+    base: "/escuela",
+    scheme: "hover-creatividad",
+    logo: "/logo-creatividad.png",
+    navIndex: 1,
+  },
+  {
+    base: "/creatividad",
+    scheme: "hover-creatividad",
+    logo: "/logo-creatividad.png",
+    navIndex: 1,
+  },
+  {
+    base: "/servicios",
+    scheme: "hover-portafolio",
+    logo: "/logo-portafolio.png",
+    navIndex: 2,
+  },
+  {
+    base: "/blog",
+    scheme: "hover-blog",
+    logo: "/logo-blog.png",
+    navIndex: 3,
+  },
+  {
+    base: "/metodologias",
+    scheme: "hover-metodologias",
+    logo: "/logo-metodologias.png",
+    navIndex: null,
+  },
 ] as const;
 
-function resolveIndex(pathname: string): number | null {
-  if (pathname in ROUTE_TO_INDEX) return ROUTE_TO_INDEX[pathname];
-  // Nested routes (e.g. /metodologias/conferencias) inherit the parent scheme.
-  const match = Object.keys(ROUTE_TO_INDEX).find((base) =>
-    pathname.startsWith(`${base}/`)
+function resolveRoute(pathname: string): (typeof ROUTES)[number] | null {
+  return (
+    ROUTES.find(
+      (route) => pathname === route.base || pathname.startsWith(`${route.base}/`)
+    ) ?? null
   );
-  return match ? ROUTE_TO_INDEX[match] : null;
 }
 
 export default function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const lockedIndex = resolveIndex(pathname);
+  const lockedRoute = resolveRoute(pathname);
 
   const bgRef = useRef<HTMLDivElement | null>(null);
   const wordmarkRef = useRef<HTMLDivElement | null>(null);
@@ -124,35 +143,49 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    const getNavLinks = () =>
+      navRef.current?.querySelectorAll<HTMLAnchorElement>("a.nav-link");
+
+    const clearNavLinks = () => {
+      getNavLinks()?.forEach((link) => link.classList.remove("is-active"));
+    };
+
     const apply = (value: number | null) => {
       document.body.classList.remove(...SCHEMES);
       if (value !== null) document.body.classList.add(NAV_ITEMS[value].scheme);
-      const links = navRef.current?.querySelectorAll<HTMLAnchorElement>(
-        "a.nav-link"
-      );
-      links?.forEach((link, i) => {
+      getNavLinks()?.forEach((link, i) => {
         link.classList.toggle("is-active", value !== null && i === value);
       });
     };
 
-    apply(lockedIndex);
+    if (lockedRoute) {
+      document.body.classList.remove(...SCHEMES);
+      document.body.classList.add(lockedRoute.scheme);
+      getNavLinks()?.forEach((link, i) => {
+        link.classList.toggle(
+          "is-active",
+          lockedRoute.navIndex !== null && i === lockedRoute.navIndex
+        );
+      });
+    } else {
+      apply(null);
+    }
 
-    if (lockedIndex !== null) {
+    if (lockedRoute !== null) {
       // Subpage: lock scheme, no auto-cycle, no hover-driven scheme changes.
       return () => {
         document.body.classList.remove(...SCHEMES);
-        navRef.current
-          ?.querySelectorAll<HTMLAnchorElement>("a.nav-link")
-          .forEach((link) => link.classList.remove("is-active"));
+        clearNavLinks();
       };
     }
 
     // Homepage: auto-cycle + hover handlers.
+    const nav = navRef.current;
     let current: number | null = null;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     const randomDelay = () => 4000 + Math.random() * 3000;
-    const POOL: (number | null)[] = [null, 0, 1, 2, 3, 4];
+    const POOL: (number | null)[] = [null, 0, 1, 2, 3];
 
     const pickNext = (): number | null => {
       const candidates = POOL.filter((v) => v !== current);
@@ -189,16 +222,16 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
       document.body.classList.remove(...SCHEMES);
-      navRef.current
+      nav
         ?.querySelectorAll<HTMLAnchorElement>("a.nav-link")
         .forEach((link) => link.classList.remove("is-active"));
       navAutoRef.current = null;
     };
-  }, [lockedIndex]);
+  }, [lockedRoute]);
 
   // Label scroll-fade animation
   useEffect(() => {
-    if (lockedIndex === null) return;
+    if (lockedRoute === null) return;
     const container = containerRef.current;
     if (!container) return;
 
@@ -234,11 +267,11 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
       container.removeEventListener("scroll", onScroll);
       reset();
     };
-  }, [lockedIndex]);
+  }, [lockedRoute]);
 
-  const isSubpage = lockedIndex !== null;
-  const [menuOpen, setMenuOpen] = useState(false);
-  useEffect(() => { setMenuOpen(false); }, [pathname]);
+  const isSubpage = lockedRoute !== null;
+  const [menuOpenPathname, setMenuOpenPathname] = useState<string | null>(null);
+  const menuOpen = menuOpenPathname === pathname;
 
   const navLinks = NAV_ITEMS.map((item, i) => (
     <Link
@@ -268,7 +301,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             <Link href="/" className="logo-link" aria-label="Inicio Divergente">
               <Image
                 data-header-logo
-                src={LOGO_SRCS[lockedIndex!]}
+                src={lockedRoute!.logo}
                 alt=""
                 width={96}
                 height={96}
@@ -279,7 +312,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             </Link>
             <button
               className="site-menu-btn"
-              onClick={() => setMenuOpen(o => !o)}
+              onClick={() => setMenuOpenPathname(menuOpen ? null : pathname)}
               aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
               aria-expanded={menuOpen}
             >
