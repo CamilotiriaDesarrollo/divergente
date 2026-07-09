@@ -250,6 +250,9 @@ export default function Creatividad() {
         else if (prog >= 1) vis = 0;
         else vis = (1 - prog) / 0.38;
         vis = clamp(vis);
+        const activeIndex = Math.min(N - 1, Math.max(0, Math.floor(p * N)));
+        const isLastExiting = i === N - 1 && prog > 0.62;
+        if (i === activeIndex && !isLastExiting) vis = Math.max(vis, 0.18);
         el.style.opacity = "1";
         el.style.setProperty("--vis", vis.toFixed(3));
         el.style.setProperty("--trace", (0.15 + vis * 0.85).toFixed(3));
@@ -500,11 +503,7 @@ export default function Creatividad() {
         </div>
       </section>
 
-      {/* ═══ El Giro (momento signature) — sube antes de Criterio.
-          Texto PENDIENTE: se mantiene literal "Del dato al sentido. Del
-          ruido a la quietud." (portado de /metodologias) a petición del
-          Dueño para traer primero la animación; el copy definitivo de
-          Escuela se decide después. Ver .cr-giro en globals.css. ═══ */}
+      {/* ═══ El Giro (momento signature). Ver .cr-giro en globals.css. ═══ */}
       <div
         ref={giroSectionRef}
         className="cr-giro"
@@ -514,27 +513,12 @@ export default function Creatividad() {
           <canvas ref={canvasRef} className="cr-giro-canvas" />
           <div className="cr-giro-text">
             <p>
-              Del dato al sentido.
+              Respira y Confía.
               <br />
-              Del ruido a la quietud.
+              El error es necesario.
             </p>
           </div>
         </div>
-      </div>
-
-      <div className="cr-criterion cr-reveal">
-        <span className="cr-criterion-word" aria-hidden="true">
-          Criterio
-        </span>
-        <p>
-          Y el criterio — saber cuándo la IA acierta, cuándo falla y cuándo
-          la decisión es humana — se entrena con prácticas de observación
-          que vienen de las artes.
-        </p>
-        <p className="cr-criterion-closing">
-          Porque la tecnología se aprende rápido;
-          <strong> el discernimiento se cultiva.</strong>
-        </p>
       </div>
     </div>
   );
@@ -547,43 +531,89 @@ const PILARES = [
   {
     t: "Pensamiento crítico",
     k: "Cuestionar siempre antes de ejecutar",
-    d: "Enseñamos a cuestionar antes de aceptar, a distinguir lo que sirve de lo que solo suena bien.\nEse criterio es el que convierte una herramienta en algo con sentido, y es, al final, el punto donde la tecnología deja de ser una copia y empieza a nacer un proceso creativo.",
+    d: (
+      <>
+        {
+          "Entrenamos el criterio y la capacidad de elegir para que la tecnología amplifique nuestras capacidades en lugar de nublarlas.\nPor eso enseñamos a cuestionar antes de aceptar: mientras exploramos herramientas técnicas, aplicamos metodologías "
+        }
+        <strong>Divergentes</strong>
+        {
+          " que fortalecen el discernimiento, la autonomía y la toma de decisiones frente a los sistemas digitales."
+        }
+      </>
+    ),
     icon: "lens",
     titleColor: "#163b8f",
   },
   {
     t: "Pensamiento creativo",
     k: "Conectar ideas distintas",
-    d: "Encontrar una salida donde antes parecía haber una sola.",
+    d: (
+      <>
+        {
+          "Las posibilidades que tienen los procesos creativos son infinitas: para desarrollar proyectos "
+        }
+        <strong>sólidos, escalables y con propósito,</strong>
+        {" se necesita desarrollar herramientas divergentes, "}
+        <strong>
+          no solo aprender a apretar botones y manipular herramientas
+          técnicas
+        </strong>
+        {".\nIntegramos "}
+        <strong>las artes, el bienestar</strong>
+        {
+          " para aprender a potenciar las herramientas tecnológicas."
+        }
+      </>
+    ),
     icon: "spark",
     titleColor: "#0071bc",
   },
   {
     t: "Pensamiento analítico",
     k: "Descomponer para entender",
-    d: "Separar el problema en partes que sí se pueden resolver.",
+    d: "Descomponer un problema no es solo dividirlo en partes, es aprender a mirarlo sin que la ansiedad de resolverlo nuble todo.\n\nEn Divergente entendemos el pensamiento analítico como una habilidad que se entrena, no como un talento que se tiene o no se tiene. Por eso cruzamos metodologías de observación consciente estructurada, para que la mente aprenda a separar, ordenar y volver a armar.",
     icon: "axes",
     titleColor: "#3949d4",
   },
   {
     t: "Herramientas Técnicas",
     k: "Construir con las manos",
-    d: "Convertir una idea en algo que funciona y se puede usar.",
+    d: "Aprendemos cometiendo errores, y perdiendo el miedo a lo técnico.\nEn Divergente enseñamos inteligencia artificial aplicada al día a día, para que cualquier persona, sin importar su oficio, pueda automatizar tareas y construir sus propias soluciones tecnológicas.\nEnseñamos a construir con las manos lo que antes parecía territorio exclusivo de expertos.",
     icon: "code",
     titleColor: "#004f8f",
   },
-] as const;
+];
 
 const MODALIDADES = [
-  { title: "Cursos en nuestra comunidad" },
-  { title: "Sesiones en grupo" },
-  { title: "Charlas y conferencias" },
-  { title: "Formaciones para emprendimiento y empresas" },
   {
-    title: "Metodologías a la medida",
-    description:
-      "Diseñadas para tu organización. Integramos datos y práctica contemplativa en tu contexto.",
-    featured: true,
+    title: "Comunidad en Skool",
+    subtitle: "Ideal para empezar de CERO. Habilidades individuales.",
+    image: "/formatos/comunidad-skool.png",
+  },
+  {
+    title: "Sesiones en grupo",
+    subtitle:
+      "Talleres vivos para compartir dudas, ideas y avances. Aprendizaje colectivo con casos reales.",
+    image: "/formatos/sesiones-grupo.jpg",
+    whatsapp: true,
+  },
+  {
+    title: "Charlas y conferencias",
+    image: "/formatos/charlas-conferencias.jpg",
+    whatsapp: true,
+  },
+  {
+    title: "Formación empresas",
+    subtitle: "Programas para fortalecer proyectos, equipos y decisiones.",
+    image: "/formatos/formaciones-empresas.png",
+    whatsapp: true,
+  },
+  {
+    title: "Canal Gratuito YOUTUBE",
+    subtitle: "Ideas claras para usar mejor la tecnología y crear con propósito.",
+    image: "/formatos/canal-youtube.jpg",
+    link: "https://www.youtube.com/@divergenteamc",
   },
 ] as const;
 
@@ -594,16 +624,37 @@ function ModalidadesBoard({ className = "cr-formats-board" }: { className?: stri
         <h2 id="cr-formats-title">Formatos de Escuela</h2>
       </div>
       <div className="cr-formats-grid" aria-label="Modalidades de formación">
-        {MODALIDADES.map((modalidad, i) => (
-          <article
-            className={`cr-format-card${modalidad.featured ? " cr-format-card-featured" : ""}`}
-            key={modalidad.title}
-          >
-            <span>{String(i + 1).padStart(2, "0")}</span>
-            <h3>{modalidad.title}</h3>
-            {"description" in modalidad ? <p>{modalidad.description}</p> : null}
-          </article>
-        ))}
+        {MODALIDADES.map((modalidad) => {
+          const href =
+            "link" in modalidad
+              ? modalidad.link
+              : "whatsapp" in modalidad && modalidad.whatsapp
+                ? `https://wa.me/573144869162?text=${encodeURIComponent(
+                    `Hola Divergente, estoy interesado/a en ${modalidad.title}`
+                  )}`
+                : undefined;
+          const Tag = href ? "a" : "article";
+          return (
+            <Tag
+              className={`cr-format-card${href ? " cr-format-card-link" : ""}`}
+              key={modalidad.title}
+              style={{ backgroundImage: `url(${modalidad.image})` }}
+              {...(href
+                ? {
+                    href,
+                    target: "_blank",
+                    rel: "noopener noreferrer",
+                  }
+                : {})}
+            >
+              <div className="cr-format-card-overlay" aria-hidden />
+              <h3>{modalidad.title}</h3>
+              {"subtitle" in modalidad ? (
+                <p className="cr-format-card-subtitle">{modalidad.subtitle}</p>
+              ) : null}
+            </Tag>
+          );
+        })}
       </div>
     </section>
   );
@@ -612,6 +663,9 @@ function ModalidadesBoard({ className = "cr-formats-board" }: { className?: stri
 function AbstractToolMark({ kind }: { kind: string }) {
   return (
     <span className={`cr-abstract-mark cr-abstract-${kind}`} aria-hidden>
+      <span />
+      <span />
+      <span />
       <span />
       <span />
       <span />
