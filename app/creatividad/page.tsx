@@ -20,12 +20,11 @@ export default function Creatividad() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const giroProgressRef = useRef(0);
 
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== "undefined" ? window.innerWidth <= 768 : false
-  );
-  const isMobileRef = useRef(
-    typeof window !== "undefined" ? window.innerWidth <= 768 : false
-  );
+  // Inicializa en false (layout desktop) para que el HTML del servidor y el
+  // primer render del cliente coincidan y no haya hydration mismatch; el
+  // valor real (móvil/desktop) se fija en el useEffect de abajo tras montar.
+  const [isMobile, setIsMobile] = useState(false);
+  const isMobileRef = useRef(false);
   const reduceMotionRef = useRef(false);
   // Espejo en state de reduceMotionRef: el canvas de El Giro solo lee la ref
   // (dentro de un rAF), pero el fallback apilado de "Los 4 pilares" decide
@@ -507,7 +506,7 @@ export default function Creatividad() {
       <div
         ref={giroSectionRef}
         className="cr-giro"
-        style={{ height: isMobile ? "200vh" : "240vh" }}
+        style={{ height: isMobile ? "150vh" : "240vh" }}
       >
         <div className="cr-giro-stage">
           <canvas ref={canvasRef} className="cr-giro-canvas" />

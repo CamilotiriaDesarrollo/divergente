@@ -2039,6 +2039,12 @@ body.hover-blog .circle-link { color: #b91d2c; }
     margin-inline: 1.15rem;
     padding-top: 5rem;
     padding-bottom: 5rem;
+    /* red de seguridad: recorta cualquier desborde horizontal de esta
+       sección en móvil (título grande, íconos de pilares) para que la
+       página no gane scroll lateral. clip (no hidden) no crea un contenedor
+       de scroll, así que no interfiere con los sticky —que además en móvil
+       no se usan aquí, los pilares se apilan. */
+    overflow-x: clip;
   }
 
   .cr-academy-content {
@@ -2047,9 +2053,13 @@ body.hover-blog .circle-link { color: #b91d2c; }
 
   .cr-academy-title {
     display: block;
+    width: auto;
+    max-width: 100%;
+    margin-left: 0;
     padding: 0;
-    font-size: clamp(3.4rem, 18vw, 7rem);
-    line-height: 0.82;
+    font-size: clamp(2.2rem, 11vw, 5rem);
+    line-height: 0.9;
+    overflow-wrap: normal;
   }
 
   .cr-academy-title span:last-child {
@@ -2112,18 +2122,6 @@ body.hover-blog .circle-link { color: #b91d2c; }
 
   .cr-academy-method p:first-child {
     font-size: clamp(2rem, 10vw, 3.2rem);
-  }
-
-  .cr-formats-board {
-    margin-top: 4rem;
-  }
-
-  .cr-formats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .cr-format-card {
-    height: 182px;
   }
 }
 
@@ -2266,7 +2264,10 @@ body.hover-blog .circle-link { color: #b91d2c; }
   line-height: 1.02;
   color: #fff;
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
-  overflow-wrap: anywhere;
+  /* normal (no "anywhere"): parte solo entre palabras, nunca a mitad de una
+     —evita cortes tipo "Comunida/d". balance reparte mejor las líneas. */
+  overflow-wrap: normal;
+  text-wrap: balance;
 }
 
 .cr-format-card-subtitle {
@@ -2304,6 +2305,45 @@ body.hover-blog .circle-link { color: #b91d2c; }
 @media (max-width: 900px) {
   .cr-formats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ── Formatos de Escuela · móvil ──────────────────────────────────────
+   ORDEN IMPORTA: en consultas max-width, a un ancho de teléfono TODAS las
+   media queries de arriba coinciden a la vez; con igual especificidad gana
+   la ÚLTIMA del archivo. Por eso estos bloques van DESPUÉS de 1180/900px —
+   es lo único que garantiza que en teléfono el grid sea de verdad 1 columna
+   (antes ganaba el de 900px = 2 columnas, y por eso se veían apretadas). */
+@media (max-width: 768px) {
+  /* En móvil los pilares se apilan (no hay sticky que "jale" el tablero
+     hacia arriba), así que anulamos el margen negativo de escritorio que
+     provocaba que "Formatos de Escuela" se encimara con el párrafo previo. */
+  .cr-formats-board {
+    margin-top: clamp(2rem, 6vw, 3rem);
+  }
+}
+
+@media (max-width: 560px) {
+  .cr-formats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+  }
+
+  /* Una sola tarjeta por fila, más cuadrada (4/3) y con aire: la imagen
+     gana presencia y el título/subtítulo respiran. */
+  .cr-format-card {
+    height: auto;
+    aspect-ratio: 4 / 3;
+    padding: 1.3rem 1.4rem;
+  }
+
+  .cr-format-card h3 {
+    font-size: clamp(1.7rem, 7vw, 2.3rem);
+  }
+
+  .cr-format-card-subtitle {
+    font-size: clamp(0.82rem, 3.6vw, 0.95rem);
+    max-width: 36ch;
   }
 }
 
