@@ -358,7 +358,13 @@ export default function Creatividad() {
 
     reveals.forEach((element) => observer.observe(element));
     return () => observer.disconnect();
-  }, []);
+    // Depende de isMobile/reduced: los pilares de "Enseñamos" solo se
+    // renderizan (como pila .cr-tools-stack-item.cr-reveal) cuando isMobile
+    // pasa a true tras el montaje. Sin re-ejecutar aquí, el observer habría
+    // corrido antes de que existieran y se quedarían en opacity:0 (sección
+    // invisible). Re-observar no revierte los ya visibles (disconnect no
+    // quita la clase is-visible).
+  }, [isMobile, reduced]);
 
   return (
     <div className="cr-page">
